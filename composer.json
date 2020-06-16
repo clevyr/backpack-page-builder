@@ -1,0 +1,29 @@
+{
+    "name": "clevyr/page-builder",
+    "description": "Clevyr INC Page Builder for backpack",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anthony Protano",
+            "email": "anthony@clevyr.com",
+            "homepage": "https://clevyr.com"
+        }
+    ],
+    "homepage": "",
+    "keywords": ["Laravel", "Backpack", "Backpack for Laravel", "Addon", "Admin Panel", "Toggle"],
+    "require": {
+        "backpack/crud": "4.1.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Clevyr\\PageBuilder\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Clevyr\\PageBuilder\\PageBuilderServiceProvider"
+            ]
+        }
+    }
+}
