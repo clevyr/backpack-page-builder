@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePageSectionsTable extends Migration
+class CreatePageFieldsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreatePageSectionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('page_sections', function (Blueprint $table) {
+        Schema::create('page_fields', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('path');
-            $table->json('extras')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -30,6 +29,6 @@ class CreatePageSectionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('page_sections');
+        Schema::dropIfExists('page_fields');
     }
 }

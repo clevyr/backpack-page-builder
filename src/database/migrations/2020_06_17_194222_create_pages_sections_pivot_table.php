@@ -5,9 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Class CreatePagesTable
+ * Class CreatePagesSectionsPivotTable
  */
-class CreatePagesTable extends Migration
+class CreatePagesSectionsPivotTable extends Migration
 {
     /**
      * Run the migrations.
@@ -16,13 +16,13 @@ class CreatePagesTable extends Migration
      */
     public function up()
     {
-        Schema::create('pages', function (Blueprint $table) {
+        Schema::create('pages_sections_pivot', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('page_view_id');
-            $table->foreign('page_view_id')->references('id')->on('page_views');
-            $table->string('name');
-            $table->string('title');
-            $table->string('slug');
+            $table->foreign('page_view_id')->references('id')->on('page_views')->cascadeOnDelete();
+            $table->unsignedInteger('section_id');
+            $table->foreign('section_id')->references('id')->on('page_sections')->cascadeOnDelete();
+            $table->json('data');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -35,6 +35,6 @@ class CreatePagesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('pages');
+        Schema::dropIfExists('pages_sections_pivot');
     }
 }

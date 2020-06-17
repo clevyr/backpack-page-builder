@@ -27,7 +27,7 @@ class PageCreateRequest extends FormRequest
             'name' => 'required|max:200',
             'title' => 'required|max:200',
             'slug' => 'required|max:200',
-            'layout' => 'required'
+            'page_view_id' => 'required'
         ];
     }
 }

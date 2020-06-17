@@ -4,13 +4,15 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class PageBuilder
  * @package Clevyr\PageBuilder\app\Models
  */
-class PageSections extends Model
+class PageSection extends Model
 {
+    use SoftDeletes;
     use CrudTrait;
 
     /*

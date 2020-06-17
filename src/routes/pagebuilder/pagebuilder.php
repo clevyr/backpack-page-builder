@@ -15,6 +15,6 @@ Route::group([
     'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
     'prefix' => config('backpack.base.route_prefix', 'admin'),
 ], function () {
-    Route::crud('pages', config('backpack.pagebuilder.admin_controller_class', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderController'));
+    Route::crud('pages', config('backpack.pagebuilder.admin_controller_class', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PagesCrudController'));
     Route::get('pages/sync', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController@sync');
 });

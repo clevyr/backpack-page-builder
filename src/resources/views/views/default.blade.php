@@ -1,0 +1,1 @@
+@include('pagebuilder::sections.default')

@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class PageBuilder
+ * Class PageSectionsPivot
  * @package Clevyr\PageBuilder\app\Models
  */
-class PageView extends Model
+class PageSectionsPivot extends Model
 {
-    use CrudTrait;
     use SoftDeletes;
+    use CrudTrait;
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ class PageView extends Model
     /**
      * @var string $table
      */
-    protected $table = 'page_views';
+    protected $table = 'pages_sections_pivot';
 
     /**
      * @var string $primaryKey
@@ -42,15 +42,10 @@ class PageView extends Model
     protected $guarded = ['id'];
 
     /**
-     * @var string[] $fakeColumns
-     */
-    protected $fakeColumns = ['extras'];
-
-    /**
      * @var string[] $casts
      */
     protected $casts = [
-        'extras' => 'array',
+        'content' => 'array',
     ];
 
     /*
@@ -59,23 +54,11 @@ class PageView extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function viewOptions()
-    {
-        return $this->get()->mapWithkeys(function ($map) {
-            return [$map->id => $map->name];
-        })->toArray();
-    }
-
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-
-    public function sections()
-    {
-        return $this->belongsToMany(PageSection::class, 'pages_sections_pivot', 'section_id', 'page_view_id');
-    }
 
     /*
     |--------------------------------------------------------------------------

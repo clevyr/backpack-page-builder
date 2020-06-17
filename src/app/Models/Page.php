@@ -4,6 +4,9 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class PageBuilder
@@ -11,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Page extends Model
 {
+    use SoftDeletes;
     use CrudTrait;
 
     /*
@@ -35,9 +39,9 @@ class Page extends Model
     public $timestamps = true;
 
     /**
-     * @var string[] $fillable
+     * @var string[] $guarded
      */
-    protected $fillable = ['template', 'name', 'title', 'slug', 'content', 'extras'];
+    public $guarded = ['id'];
 
     /**
      * @var string[] $fakeColumns
@@ -62,6 +66,36 @@ class Page extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * View
+     *
+     * Returns the view
+     *
+     * @return HasOne
+     */
+    public function view()
+    {
+        return $this->hasOne(PageView::class, 'id', 'page_view_id');
+    }
+
+    /**
+     * Sections
+     *
+     * Returns a list of the sections in the view
+     *
+     * @return HasManyThrough
+     */
+    public function sections() : HasManyThrough
+    {
+        return $this->hasManyThrough(
+            PageSection::class,
+            PageSectionsPivot::class,
+            'page_view_id',
+            'id',
+            'page_view_id',
+        );
+    }
 
     /*
     |--------------------------------------------------------------------------

@@ -9,7 +9,7 @@ use Backpack\CRUD\app\Library\Widget;
  * Class PageBuilderCrudController
  * @package Clevyr\PageBuilder\app\Http\Controllers\Admin
  */
-class PageBuilderCrudController extends CrudController
+class PageBuilderBaseController extends CrudController
 {
     /**
      * Setup
@@ -18,7 +18,7 @@ class PageBuilderCrudController extends CrudController
     {
         Widget::add([
             'type' => 'view',
-            'view' => 'vendor.backpack.pagebuilder.widgets.reload-files',
+            'view' => 'pagebuilder::widgets.reload-files',
         ])
             ->to('after_content');
     }

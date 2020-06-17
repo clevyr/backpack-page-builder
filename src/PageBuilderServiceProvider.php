@@ -2,6 +2,7 @@
 
 namespace Clevyr\PageBuilder;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class PageBuilderServiceProvider extends ServiceProvider
@@ -37,7 +38,7 @@ class PageBuilderServiceProvider extends ServiceProvider
         $this->publishes([__DIR__ . '/config/pagebuilder.php' => config_path('backpack/pagebuilder.php')]);
 
         $this->mergeConfigFrom(__DIR__.'/config/pagebuilder.php', 'backpack.pagebuilder');
-        $this->loadViewsFrom(realpath(__DIR__ . '/resources'), 'pagebuilder');
+        $this->loadViewsFrom(realpath(__DIR__ . '/resources/views'), 'pagebuilder');
     }
 
     /**
@@ -64,5 +65,17 @@ class PageBuilderServiceProvider extends ServiceProvider
     public function register() : void
     {
         $this->setupRoutes();
+    }
+
+    /**
+     * Register Directives
+     *
+     * @return void
+     */
+    private function registerDirectives() : void
+    {
+        Blade::directive('field', function ($expression) {
+            return $expression;
+        });
     }
 }

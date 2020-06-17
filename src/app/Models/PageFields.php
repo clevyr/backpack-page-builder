@@ -4,16 +4,18 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * Class PageBuilder
+ * Class PageFields
  * @package Clevyr\PageBuilder\app\Models
  */
-class PageView extends Model
+class PageFields extends Model
 {
-    use CrudTrait;
     use SoftDeletes;
+    use CrudTrait;
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +26,7 @@ class PageView extends Model
     /**
      * @var string $table
      */
-    protected $table = 'page_views';
+    protected $table = 'page_fields';
 
     /**
      * @var string $primaryKey
@@ -37,21 +39,9 @@ class PageView extends Model
     public $timestamps = true;
 
     /**
-     * @var string[] $fillable
+     * @var string[] $guarded
      */
-    protected $guarded = ['id'];
-
-    /**
-     * @var string[] $fakeColumns
-     */
-    protected $fakeColumns = ['extras'];
-
-    /**
-     * @var string[] $casts
-     */
-    protected $casts = [
-        'extras' => 'array',
-    ];
+    public $guarded = ['id'];
 
     /*
     |--------------------------------------------------------------------------
@@ -59,23 +49,11 @@ class PageView extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function viewOptions()
-    {
-        return $this->get()->mapWithkeys(function ($map) {
-            return [$map->id => $map->name];
-        })->toArray();
-    }
-
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-
-    public function sections()
-    {
-        return $this->belongsToMany(PageSection::class, 'pages_sections_pivot', 'section_id', 'page_view_id');
-    }
 
     /*
     |--------------------------------------------------------------------------
