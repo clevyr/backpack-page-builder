@@ -42,15 +42,14 @@ class PageSection extends Model
     protected $guarded = ['id'];
 
     /**
-     * @var string[] $fakeColumns
-     */
-    protected $fakeColumns = ['extras'];
-
-    /**
      * @var string[] $casts
      */
     protected $casts = [
-        'extras' => 'array',
+        'fields' => 'array',
+    ];
+
+    protected $appends = [
+        'human_name',
     ];
 
     /*
@@ -76,6 +75,11 @@ class PageSection extends Model
     | ACCESORS
     |--------------------------------------------------------------------------
     */
+
+    public function getHumanNameAttribute()
+    {
+        return ucwords(str_replace('_', ' ', $this->name));
+    }
 
     /*
     |--------------------------------------------------------------------------

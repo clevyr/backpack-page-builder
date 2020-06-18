@@ -17,4 +17,5 @@ Route::group([
 ], function () {
     Route::crud('pages', config('backpack.pagebuilder.admin_controller_class', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PagesCrudController'));
     Route::get('pages/sync', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController@sync');
+    Route::get('pages/field', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFieldController@get');
 });

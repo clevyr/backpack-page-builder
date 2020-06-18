@@ -59,6 +59,13 @@ class PageView extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * View Options
+     *
+     * Returns the views as an array
+     *
+     * @return mixed
+     */
     public function viewOptions()
     {
         return $this->get()->mapWithkeys(function ($map) {
@@ -71,11 +78,6 @@ class PageView extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-
-    public function sections()
-    {
-        return $this->belongsToMany(PageSection::class, 'pages_sections_pivot', 'section_id', 'page_view_id');
-    }
 
     /*
     |--------------------------------------------------------------------------

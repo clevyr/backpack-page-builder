@@ -45,7 +45,7 @@ class PageSectionsPivot extends Model
      * @var string[] $casts
      */
     protected $casts = [
-        'content' => 'array',
+        'data' => 'array',
     ];
 
     /*

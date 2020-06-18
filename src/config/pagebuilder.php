@@ -5,6 +5,5 @@ return [
     'page_model_class' => 'Clevyr\PageBuilder\app\Models\Page',
     'page_sections_model_class' => 'Clevyr\PageBuilder\app\Models\PageSections',
 
-    'page_views_path' => resource_path() . '/views/vendor/pagebuilder/views/',
-    'section_views_path' => resource_path() . '/views/vendor/pagebuilder/sections/',
+    'page_views_path' => resource_path() . '/views/vendor/pagebuilder/pages/',
 ];

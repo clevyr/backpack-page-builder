@@ -74,7 +74,7 @@ class Page extends Model
      *
      * @return HasOne
      */
-    public function view()
+    public function view() : HasOne
     {
         return $this->hasOne(PageView::class, 'id', 'page_view_id');
     }
@@ -93,6 +93,16 @@ class Page extends Model
             PageSectionsPivot::class,
             'page_view_id',
             'id',
+            'page_view_id',
+            'section_id'
+        );
+    }
+
+    public function sectionData()
+    {
+        return $this->hasMany(
+            PageSectionsPivot::class,
+            'page_view_id',
             'page_view_id',
         );
     }

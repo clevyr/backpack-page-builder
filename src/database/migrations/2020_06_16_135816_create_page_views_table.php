@@ -16,7 +16,6 @@ class CreatePageViewsTable extends Migration
         Schema::create('page_views', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('path');
             $table->softDeletes();
             $table->timestamps();
         });

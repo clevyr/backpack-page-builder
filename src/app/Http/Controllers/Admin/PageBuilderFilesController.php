@@ -2,7 +2,6 @@
 
 namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 
-use Clevyr\PageBuilder\app\Models\PageFields;
 use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
@@ -10,10 +9,8 @@ use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\Support\Str;
+use SplFileInfo;
 use Throwable;
 
 /**
@@ -43,28 +40,18 @@ class PageBuilderFilesController
     private PageSection $page_section;
 
     /**
-     * @var PageFields $page_fields
-     */
-    private PageFields $page_fields;
-
-    /**
      * PageBuilderFilesController constructor.
      *
      * @param PageView $page_view
      * @param PageSection $page_section
-     * @param PageFields $page_fields
      */
-    public function __construct(PageView $page_view, PageSection $page_section, PageFields $page_fields)
+    public function __construct(PageView $page_view, PageSection $page_section)
     {
-        $this->views_path = config('backpack.pagebuilder.page_views_path',
-            '/views/vendor/pagebuilder/views/');
-
-        $this->sections_path = config('backpack.pagebuilder.section_views_path',
-            '/views/backpack/pagebuilder/sections/');
+        $this->views_path = resource_path() . '/views/pages/';
 
         $this->page_view = $page_view;
+
         $this->page_section = $page_section;
-        $this->page_fields = $page_fields;
     }
 
     /**
@@ -77,9 +64,7 @@ class PageBuilderFilesController
     public function sync()
     {
         try {
-            $this->loadSections();
             $this->loadViews();
-            $this->loadFields();
 
             return [
                 'success' => true,
@@ -92,26 +77,6 @@ class PageBuilderFilesController
             return [
                 'success' => false,
             ];
-        }
-    }
-
-    /**
-     * Load Fields
-     *
-     * @return void
-     */
-    public function loadFields() : void
-    {
-        $filesystem = new Filesystem();
-        $files = $filesystem->allFiles(resource_path('views/vendor/backpack/crud/fields'));
-
-        foreach ($files as $file) {
-            $this->page_fields->updateOrCreate([
-                'name' => explode('.', $file->getBasename())[0],
-            ], [
-                'name' => explode('.', $file->getBasename())[0],
-                'path' => $file->getPath(),
-            ]);
         }
     }
 
@@ -129,29 +94,26 @@ class PageBuilderFilesController
 
         // Get files glob
         $filesystem = new Filesystem();
-        $files = $filesystem->allFiles($this->views_path);
+        $pages = $filesystem->directories($this->views_path);
 
         // Set empty ids array
         $ids = [];
 
         // iterate through files
-        foreach($files as $file) {
+        foreach($pages as $page) {
             // Set file info
-            $file_info = pathinfo($file);
-            $base_name = $file_info['basename'];
-            $human_name = explode('.', $base_name)[0] ?? false;
+            $file_info = pathinfo($page);
+            $folder_name = $file_info['basename'];
 
-            // Check that a human name was generated
-            if (!$human_name) {
-                throw new Exception('Please make sure the layout is a .blade.php file');
+            if (!$filesystem->exists($page . '/config.php')) {
+                throw new Exception('Configuration file for the ' . $folder_name . ' page does not exist.');
             }
 
-            // Create the path
-            $path = $this->views_path . $base_name;
+            $sections = $this->parseSections($page, $folder_name);
 
             // Check for a trashed layout
             $operation = $this->page_view->onlyTrashed()
-                ->where('path', $path)
+                ->where('name', $folder_name)
                 ->firstOr(fn() => false);
 
             // Check if the layout exists
@@ -161,22 +123,19 @@ class PageBuilderFilesController
             } else {
                 // Update or create non trashed layouts
                 $operation = $this->page_view->updateOrCreate([
-                    'path' => $path,
+                    'name' => $folder_name,
                 ], [
-                    'name' => $human_name,
-                    'path' => $path,
+                    'name' => $folder_name,
                 ]);
 
-                $sections = $this->parseView($file, $human_name);
-
-                foreach ($sections as $section) {
+                foreach ($sections as $key => $section) {
                     PageSectionsPivot::updateOrCreate([
                         'page_view_id' => $operation->id,
                         'section_id' => $section,
                     ], [
                         'page_view_id' => $operation->id,
                         'section_id' => $section,
-                        'data' => '{}',
+                        'order' => $key,
                     ]);
                 }
             }
@@ -194,51 +153,56 @@ class PageBuilderFilesController
     }
 
     /**
+     * Parse Sections
+     *
+     * @param string $page
+     * @param string $folder_name
+     * @return array|mixed
      * @throws Exception
      */
-    public function loadSections()
+    public function parseSections($page, $folder_name)
     {
-        if (!is_dir($this->sections_path)) {
-            throw new Exception('Views path does not exist');
-        }
+        $config = include($page . '/config.php');
 
-        // Get files glob
         $filesystem = new Filesystem();
-        $files = $filesystem->allFiles($this->sections_path);
+        $files = $filesystem->allFiles($page . '/sections');
 
-        // Set empty ids array
+        return $this->addSections($files, $folder_name, $config);
+    }
+
+    /**
+     * Add Sections
+     *
+     * @param SplFileInfo[] $files
+     * @param string $folder_name
+     * @param array $config
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function addSections($files, string $folder_name, $config)
+    {
         $ids = [];
 
-        // iterate through files
         foreach($files as $file) {
             // Set file info
             $file_info = pathinfo($file);
-            $base_name = $file_info['basename'];
-            $human_name = explode('.', $base_name)[0] ?? false;
+            $name = explode('.', $file_info['basename'])[0];
+            $base_name = $folder_name . '-' . $name;
 
             // Check that a human name was generated
-            if (!$human_name) {
-                throw new Exception('Please make sure the layout is a .blade.php file');
+            if (!$name) {
+                throw new Exception('Please make sure the ' . $name . ' page file exists.');
             }
 
-            $contents = $this->parseSection($file);
-
-            // Set file info
-            $file_info = pathinfo($file);
-            $base_name = $file_info['basename'];
-            $human_name = explode('.', $base_name)[0] ?? false;
-
-            // Check that a human name was generated
-            if (!$human_name) {
-                throw new Exception('Please make sure the layout is a .blade.php file');
+            // Check for config key value based on the file name
+            if (!$config[$name]) {
+                throw new Exception('Configuration for the ' . $name . ' page was not found.');
             }
-
-            // Create the path
-            $path = $this->sections_path . $base_name;
 
             // Check for a trashed layout
             $operation = $this->page_section->onlyTrashed()
-                ->where('path', $path)
+                ->where('slug', $base_name)
                 ->firstOr(fn() => false);
 
             // Check if the layout exists
@@ -248,11 +212,10 @@ class PageBuilderFilesController
             } else {
                 // Update or create non trashed layouts
                 $operation = $this->page_section->updateOrCreate([
-                    'path' => $path,
+                    'slug' => $base_name,
                 ], [
-                    'name' => $human_name,
-                    'path' => $path,
-                    'extras' => $contents,
+                    'name' => $name,
+                    'fields' => $config[$name] // Fields configuration,
                 ]);
             }
 
@@ -266,65 +229,7 @@ class PageBuilderFilesController
         $this->page_section->whereNotIn('id', $ids)
             ->where('deleted_at', '=', null)
             ->delete();
-    }
 
-    /**
-     * Parse Section
-     *
-     * Runs a regex on the loaded file for blade variables
-     *
-     * @param string $file
-     * @param string $name
-     *
-     * @return bool|Collection
-     * @throws Throwable
-     */
-    private function parseView(string $file, string $name)
-    {
-        $sections = new Collection();
-        $content = strip_tags(file_get_contents($file));
-
-        // Gather all sections
-        preg_match_all("~('\s*(.*?)\s*')~", $content, $file_sections);
-
-        foreach($file_sections[2] as $section) {
-            $explode = explode('.', $section);
-            $name = $explode[count($explode) - 1];
-
-            $sections->push($this->page_section->where('name', $name)->pluck('id')->flatten()->toArray());
-        }
-
-        if ($sections->count() > 0) {
-            return $sections->flatten();
-        }
-
-        return false;
-    }
-
-    /**
-     * Parse Section
-     *
-     * Runs a regex on the loaded file for blade variables
-     *
-     * @param string $file
-     *
-     * @return bool|Collection
-     */
-    private function parseSection(string $file)
-    {
-        $content = strip_tags(file_get_contents($file));
-        preg_match_all("~{{\s*(.*?)\s*}}~", $content, $matches);
-
-
-        if (count($matches[1]) > 0) {
-            return collect($matches[1])->map(function ($item) {
-                return [
-                    'name' => str_replace('$', '', $item),
-                    'variable' => $item,
-                ];
-            });
-        }
-
-        return false;
+        return $ids;
     }
 }

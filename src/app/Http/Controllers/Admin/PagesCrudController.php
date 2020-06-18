@@ -4,8 +4,7 @@ namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
-use Clevyr\PageBuilder\app\Models\Page;
-use Clevyr\PageBuilder\app\Models\PageSection;
+use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -19,19 +18,16 @@ class PagesCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 
     /**
-     * @var PageView $pageView
+     * @var PageView $page_view
      */
-    private PageView $pageView;
-
-    private PageSection $pageSection;
+    private PageView $page_view;
 
     /**
      * PagesCrudController constructor.
      */
     public function __construct()
     {
-        $this->pageView = new PageView();
-        $this->pageSection = new PageSection();
+        $this->page_view = new PageView();
 
         parent::__construct();
     }
@@ -88,7 +84,7 @@ class PagesCrudController extends CrudController
             ->label('View')
             ->type('select_from_array')
             ->allows_null(false)
-            ->options($this->pageView->viewOptions());
+            ->options($this->page_view->viewOptions());
 
         $this->crud->setValidation(PageCreateRequest::class);
     }
@@ -98,12 +94,12 @@ class PagesCrudController extends CrudController
         $this->crud->field('name')->type('text')->tab('General Information');
         $this->crud->field('title')->type('text')->tab('General Information');
         $this->crud->field('slug')->type('text')->tab('General Information');
-        $this->crud->field('layout')
+        $this->crud->field('page_view_id')
+            ->label('View')
             ->type('select_from_array')
-            ->options($this->pageView->viewOptions())
+            ->options($this->page_view->viewOptions())
+            ->allows_null(false)
             ->tab('General Information');
-
-        $this->crud->setValidation(PageCreateRequest::class);
     }
 
     /**
@@ -125,9 +121,65 @@ class PagesCrudController extends CrudController
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
         $this->data['id'] = $id;
-        $this->data['sections'] = $this->crud->getModel()->with(['view', 'sections'])->first()->sections->toArray();
+
+        // Sections
+        $this->data['sections'] = $this->crud->getModel()
+            ->with(['view', 'sections' => function ($query) {
+                return $query->orderBy('order', 'ASC');
+            }])
+            ->first()
+            ->sections
+            ->toArray();
+
+        // Sections Data
+        $this->data['section_data'] = $this->crud
+            ->getModel()
+            ->first()
+            ->sectionData()
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->section_id => $item->data];
+            });
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getEditView(), $this->data);
+    }
+
+    public function update()
+    {
+        $this->crud->hasAccessOrFail('update');
+
+        // execute the FormRequest authorization and validation, if one is required
+        $request = $this->crud->validateRequest();
+
+        // update the row in the db
+        $item = $this->crud->update($request->get($this->crud->model->getKeyName()),
+            $this->crud->getStrippedSaveRequest());
+
+        $page_view_id = $this->crud
+            ->getModel()
+            ->first()
+            ->view()
+            ->first()
+            ->id;
+
+        $sections = $request->get('sections');
+
+        foreach ($sections as $key => $section) {
+            PageSectionsPivot::where([
+                'page_view_id' => $page_view_id,
+                'section_id' => $key
+            ])->update(['data' => $section]);
+        }
+
+        $this->data['entry'] = $this->crud->entry = $item;
+
+        // show a success message
+        \Alert::success(trans('backpack::crud.update_success'))->flash();
+
+        // save the redirect choice for next time
+        $this->crud->setSaveAction();
+
+        return $this->crud->performSaveAction($item->getKey());
     }
 }

@@ -11,14 +11,35 @@
                                data-target="#{{ $slug }}"
                                aria-expanded="true"
                                aria-controls="collapseOne">
-                           {{ $section['name'] }}
+                           {{ $section['human_name'] }}
                        </button>
                    </h2>
                </div>
 
                <div id="{{ $slug }}" class="collapse open" aria-labelledby="{{ $slug }}" data-parent="#accordionExample">
                    <div class="card-body">
-                       @include('vendor.backpack.crud.fields.checkbox', ['field' => ['name' => '', 'label' => '', 'type' => '']])
+                       <div class="form-group">
+                           @foreach($section['fields'] as $key => $data)
+                               {{-- Merge field data to create name key array --}}
+                               @php
+                                    $value = '';
+                                    if (is_array($section_data[$section['id']])) {
+                                        $value = isset($section_data[$section['id']][$key])
+                                        ?  $section_data[$section['id']][$key]
+                                        : '';
+                                    }
+
+                                    $field = array_merge($data, [
+                                        'name' => "sections[{$section['id']}][{$key}]",
+                                        'value' => $value,
+                                    ]);
+                               @endphp
+                               @include('crud::fields.' . $data['type'], [
+                                    'field' => $field,
+                                    'crud' => $crud,
+                                ])
+                           @endforeach
+                       </div>
                    </div>
                </div>
            </div>
