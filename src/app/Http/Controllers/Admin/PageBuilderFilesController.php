@@ -70,10 +70,12 @@ class PageBuilderFilesController
                 'success' => true,
             ];
         } catch (Exception $e) {
+            dd($e);
             return [
                 'success' => false,
             ];
         } catch (Throwable $e) {
+            dd($e);
             return [
                 'success' => false,
             ];

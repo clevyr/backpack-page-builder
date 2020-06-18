@@ -22,7 +22,7 @@ class CreatePagesSectionsPivotTable extends Migration
             $table->foreign('page_view_id')->references('id')->on('page_views')->cascadeOnDelete();
             $table->unsignedInteger('section_id');
             $table->foreign('section_id')->references('id')->on('page_sections')->cascadeOnDelete();
-            $table->json('data');
+            $table->json('data')->nullable();
             $table->integer('order')->default(0);
             $table->softDeletes();
             $table->timestamps();
