@@ -66,16 +66,4 @@ class PageBuilderServiceProvider extends ServiceProvider
     {
         $this->setupRoutes();
     }
-
-    /**
-     * Register Directives
-     *
-     * @return void
-     */
-    private function registerDirectives() : void
-    {
-        Blade::directive('field', function ($expression) {
-            return $expression;
-        });
-    }
 }

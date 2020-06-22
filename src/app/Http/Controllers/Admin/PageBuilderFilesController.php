@@ -70,12 +70,10 @@ class PageBuilderFilesController
                 'success' => true,
             ];
         } catch (Exception $e) {
-            dd($e);
             return [
                 'success' => false,
             ];
         } catch (Throwable $e) {
-            dd($e);
             return [
                 'success' => false,
             ];
@@ -111,7 +109,9 @@ class PageBuilderFilesController
                 throw new Exception('Configuration file for the ' . $folder_name . ' page does not exist.');
             }
 
-            $sections = $this->parseSections($page, $folder_name);
+            $config = include($page . '/config.php');
+
+            $sections = $this->parseSections($page, $folder_name, $config);
 
             // Check for a trashed layout
             $operation = $this->page_view->onlyTrashed()
@@ -147,11 +147,6 @@ class PageBuilderFilesController
                 $ids[] = $operation->id;
             }
         }
-
-        // Delete layouts that are not found
-        $this->page_view->whereNotIn('id', $ids)
-            ->where('deleted_at', '=', null)
-            ->delete();
     }
 
     /**
@@ -159,13 +154,13 @@ class PageBuilderFilesController
      *
      * @param string $page
      * @param string $folder_name
+     * @param array $config
+     *
      * @return array|mixed
      * @throws Exception
      */
-    public function parseSections($page, $folder_name)
+    public function parseSections(string $page, string $folder_name, array $config)
     {
-        $config = include($page . '/config.php');
-
         $filesystem = new Filesystem();
         $files = $filesystem->allFiles($page . '/sections');
 
@@ -182,7 +177,7 @@ class PageBuilderFilesController
      * @return mixed
      * @throws Exception
      */
-    public function addSections($files, string $folder_name, $config)
+    public function addSections($files, string $folder_name, array $config)
     {
         $ids = [];
 
@@ -226,11 +221,6 @@ class PageBuilderFilesController
                 $ids[] = $operation->id;
             }
         }
-
-        // Delete layouts that are not found
-        $this->page_section->whereNotIn('id', $ids)
-            ->where('deleted_at', '=', null)
-            ->delete();
 
         return $ids;
     }

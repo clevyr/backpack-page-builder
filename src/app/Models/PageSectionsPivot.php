@@ -4,6 +4,7 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -60,6 +61,16 @@ class PageSectionsPivot extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Section
+     *
+     * @return HasOne
+     */
+    public function section() : HasOne
+    {
+        return $this->hasOne(PageSection::class, 'id', 'section_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -68,9 +79,27 @@ class PageSectionsPivot extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | ACCESORS
+    | ACCESSORS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Get Formatted Data Attribute
+     *
+     * Json decodes or returns the original section data
+     *
+     * @return mixed
+     */
+    public function getFormattedDataAttribute()
+    {
+        $data = $this->data;
+
+        foreach ($data as $key => $d) {
+            $data[$key] = json_decode($d, true) ?? $d;
+        }
+
+        return $data;
+    }
 
     /*
     |--------------------------------------------------------------------------

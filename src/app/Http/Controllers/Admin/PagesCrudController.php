@@ -8,6 +8,7 @@ use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class PagesCrudController extends CrudController
@@ -114,6 +115,7 @@ class PagesCrudController extends CrudController
         $this->crud->hasAccessOrFail('update');
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
+
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntry($id);
@@ -123,18 +125,14 @@ class PagesCrudController extends CrudController
         $this->data['id'] = $id;
 
         // Sections
-        $this->data['sections'] = $this->crud->getModel()
-            ->with(['view', 'sections' => function ($query) {
-                return $query->orderBy('order', 'ASC');
-            }])
-            ->first()
-            ->sections
+        $this->data['sections'] = $this->crud->entry
+            ->sections()
+            ->orderBy('order', 'DESC')
+            ->get()
             ->toArray();
 
         // Sections Data
-        $this->data['section_data'] = $this->crud
-            ->getModel()
-            ->first()
+        $this->data['section_data'] = $this->crud->entry
             ->sectionData()
             ->get()
             ->mapWithKeys(function ($item) {
@@ -145,6 +143,11 @@ class PagesCrudController extends CrudController
         return view($this->crud->getEditView(), $this->data);
     }
 
+    /**
+     * Update
+     *
+     * @return array|Response
+     */
     public function update()
     {
         $this->crud->hasAccessOrFail('update');
@@ -153,26 +156,28 @@ class PagesCrudController extends CrudController
         $request = $this->crud->validateRequest();
 
         // update the row in the db
-        $item = $this->crud->update($request->get($this->crud->model->getKeyName()),
+        $update = $this->crud->update($request->get($this->crud->model->getKeyName()),
             $this->crud->getStrippedSaveRequest());
 
-        $page_view_id = $this->crud
-            ->getModel()
-            ->first()
-            ->view()
-            ->first()
-            ->id;
+        // Get the page view id
+        $page_view_id = $this->crud->getModel()
+            ->findOrFail($request->get('id'))
+            ->page_view_id;
 
+        // Get the request sections
         $sections = $request->get('sections');
 
+        // Update the sections
         foreach ($sections as $key => $section) {
             PageSectionsPivot::where([
                 'page_view_id' => $page_view_id,
                 'section_id' => $key
-            ])->update(['data' => $section]);
+            ])
+                ->first()
+                ->update(['data' => $section]);
         }
 
-        $this->data['entry'] = $this->crud->entry = $item;
+        $this->data['entry'] = $this->crud->entry = $update;
 
         // show a success message
         \Alert::success(trans('backpack::crud.update_success'))->flash();
@@ -180,6 +185,6 @@ class PagesCrudController extends CrudController
         // save the redirect choice for next time
         $this->crud->setSaveAction();
 
-        return $this->crud->performSaveAction($item->getKey());
+        return $this->crud->performSaveAction($update->getKey());
     }
 }

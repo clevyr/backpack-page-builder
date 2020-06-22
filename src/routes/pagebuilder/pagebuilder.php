@@ -11,11 +11,20 @@
 */
 
 Route::group([
-    'namespace' => '',
+    'namespace' => 'Clevyr\PageBuilder\app\Http\Controllers\Admin',
     'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
     'prefix' => config('backpack.base.route_prefix', 'admin'),
 ], function () {
-    Route::crud('pages', config('backpack.pagebuilder.admin_controller_class', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PagesCrudController'));
-    Route::get('pages/sync', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController@sync');
-    Route::get('pages/field', 'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFieldController@get');
+    Route::crud('pages', 'PagesCrudController');
+    Route::get('pages/sync', 'PageBuilderFilesController@sync');
+    Route::get('pages/field', 'PageBuilderFieldController@get');
+});
+
+Route::group([
+    'namespace' => 'Clevyr\PageBuilder\app\Http\Controllers',
+    'middleware' => ['web'],
+], function () {
+    // Catch all for pages
+    Route::get('{page}/{subs?}', ['uses' => 'PageController@index'])
+        ->where(['page' => '^(((?=(?!admin))(?=(?!\/)).))*$', 'subs' => '.*']);
 });

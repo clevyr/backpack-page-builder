@@ -1,11 +1,11 @@
 <div class="container container-fluid">
    @foreach($sections as $key => $section)
        @php $slug = 'section_' . $key . '_' . $section['name'] @endphp
-       <div class="accordion" id="accordionExample">
+       <div class="accordion" id="accordion_{{ $section['name'] }}">
            <div class="card">
-               <div class="card-header" id="headingOne">
+               <div class="card-header p-0" id="section_{{ $section['name'] }}_header">
                    <h2 class="mb-0">
-                       <button class="btn btn-link"
+                       <button class="btn btn-link btn-block text-left px-3 py-2"
                                type="button"
                                data-toggle="collapse"
                                data-target="#{{ $slug }}"
@@ -16,7 +16,7 @@
                    </h2>
                </div>
 
-               <div id="{{ $slug }}" class="collapse open" aria-labelledby="{{ $slug }}" data-parent="#accordionExample">
+               <div id="{{ $slug }}" class="collapse open" aria-labelledby="{{ $slug }}" data-parent="#accordion_{{ $section['name'] }}">
                    <div class="card-body">
                        <div class="form-group">
                            @foreach($section['fields'] as $key => $data)

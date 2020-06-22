@@ -50,10 +50,10 @@
                 </li>
             @endforeach
                 <li role="presentation" class="nav-item">
-                    <a href="#tab-page-editor"
-                       aria-controls="tab-page-editor"
+                    <a href="#tab_page-editor"
+                       aria-controls="tab_page-editor"
                        role="tab"
-                       tab_name="tab-page-editor"
+                       tab_name="tab_page-editor"
                        data-toggle="tab"
                        class="nav-link"
                     >Page Editor</a>
@@ -63,15 +63,14 @@
         <div class="tab-content p-0 {{$horizontalTabs ? '' : 'col-md-9'}}">
 
             @foreach ($crud->getTabs() as $k => $tab)
-                <div role="tabpanel" class="tab-pane {{ isset($tabWithError) ? ($tab == $tabWithError ? ' active' : '') : ($k == 0 ? ' ' : '') }}" id="tab_{{ Str::slug($tab) }}">
-
+                <div role="tabpanel" class="tab-pane {{ isset($tabWithError) ? ($tab == $tabWithError ? ' active' : '') : ($k == 0 ? ' active' : '') }}" id="tab_{{ Str::slug($tab) }}">
                     <div class="row">
                         @include('crud::inc.show_fields', ['fields' => $crud->getTabFields($tab)])
                     </div>
                 </div>
             @endforeach
 
-            <div role="tabpanel" class="tab-pane active" id="tab-page-editor">
+            <div role="tabpanel" class="tab-pane" id="tab_page-editor">
                 <div class="row">
                     @include('pagebuilder::crud.form.page_editor')
                 </div>
