@@ -70,10 +70,18 @@ class PageBuilderFilesController
                 'success' => true,
             ];
         } catch (Exception $e) {
+            if (config('app.env') === 'local') {
+                dd($e);
+            }
+
             return [
                 'success' => false,
             ];
         } catch (Throwable $e) {
+            if (config('app.env') === 'local') {
+                dd($e);
+            }
+
             return [
                 'success' => false,
             ];
@@ -105,14 +113,6 @@ class PageBuilderFilesController
             $file_info = pathinfo($page);
             $folder_name = $file_info['basename'];
 
-            if (!$filesystem->exists($page . '/config.php')) {
-                throw new Exception('Configuration file for the ' . $folder_name . ' page does not exist.');
-            }
-
-            $config = include($page . '/config.php');
-
-            $sections = $this->parseSections($page, $folder_name, $config);
-
             // Check for a trashed layout
             $operation = $this->page_view->onlyTrashed()
                 ->where('name', $folder_name)
@@ -130,15 +130,25 @@ class PageBuilderFilesController
                     'name' => $folder_name,
                 ]);
 
-                foreach ($sections as $key => $section) {
-                    PageSectionsPivot::updateOrCreate([
-                        'page_view_id' => $operation->id,
-                        'section_id' => $section,
-                    ], [
-                        'page_view_id' => $operation->id,
-                        'section_id' => $section,
-                        'order' => $key,
-                    ]);
+                // Check for page configuration
+                if ($filesystem->exists($page . '/config.php')) {
+                    // Load config
+                    $config = include($page . '/config.php');
+
+                    // Get sections
+                    $sections = $this->parseSections($page, $folder_name, $config);
+
+                    // Update sections
+                    foreach ($sections as $key => $section) {
+                        PageSectionsPivot::updateOrCreate([
+                            'page_view_id' => $operation->id,
+                            'section_id' => $section,
+                        ], [
+                            'page_view_id' => $operation->id,
+                            'section_id' => $section,
+                            'order' => $key,
+                        ]);
+                    }
                 }
             }
 
@@ -147,10 +157,17 @@ class PageBuilderFilesController
                 $ids[] = $operation->id;
             }
         }
+
+        // Delete layouts that are not found
+        $this->page_view->whereNotIn('id', $ids)
+            ->where('deleted_at', '=', null)
+            ->delete();
     }
 
     /**
      * Parse Sections
+     *
+     * Itterates through the sections and adds them to the database
      *
      * @param string $page
      * @param string $folder_name
@@ -169,6 +186,8 @@ class PageBuilderFilesController
 
     /**
      * Add Sections
+     *
+     * Adds the sections to the database
      *
      * @param SplFileInfo[] $files
      * @param string $folder_name
