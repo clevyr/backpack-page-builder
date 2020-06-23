@@ -5,6 +5,7 @@ namespace Clevyr\PageBuilder\app\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * Class PageBuilder
@@ -76,9 +77,18 @@ class PageSection extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function getHumanNameAttribute()
+    /**
+     * Get Human Name Attribute
+     *
+     * @return string
+     */
+    public function getHumanNameAttribute() : string
     {
-        return ucwords(str_replace('_', ' ', $this->name));
+        return ucwords(str_replace('_', ' ',
+                Str::snake(
+                    Str::camel($this->name)
+                )
+            )) ?? '';
     }
 
     /*

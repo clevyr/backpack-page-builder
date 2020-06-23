@@ -68,9 +68,16 @@ class PageView extends Model
      */
     public function viewOptions()
     {
-        return $this->get()->mapWithkeys(function ($map) {
-            return [$map->id => $map->name];
-        })->toArray();
+        $options = $this->get()
+            ->mapWithkeys(function ($map) {
+                return [$map->id => $map->name];
+            });
+
+        if (backpack_user()->hasRole('Page Manager')) {
+            $options = $options->filter(fn ($item) => $item === 'dynamic');
+        }
+
+        return $options->toArray();
     }
 
     /*

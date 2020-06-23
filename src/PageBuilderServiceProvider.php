@@ -2,7 +2,9 @@
 
 namespace Clevyr\PageBuilder;
 
-use Illuminate\Support\Facades\Blade;
+use Clevyr\PageBuilder\app\Models\Page;
+use Clevyr\PageBuilder\app\Policies\PageBuilderCrudPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class PageBuilderServiceProvider extends ServiceProvider
@@ -12,14 +14,23 @@ class PageBuilderServiceProvider extends ServiceProvider
      *
      * @var bool $defer
      */
-    protected $defer = false;
+    protected bool $defer = false;
+
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array
+     */
+    protected array $policies = [
+        Page::class => PageBuilderCrudPolicy::class,
+    ];
 
     /**
      * Set the route file location
      *
      * @var string $routeFilePath
      */
-    public $routeFilePath = '/routes/pagebuilder/pagebuilder.php';
+    public string $routeFilePath = '/routes/pagebuilder/pagebuilder.php';
 
     /**
      * Perform post-registration booting of services.
@@ -34,11 +45,17 @@ class PageBuilderServiceProvider extends ServiceProvider
         // Publish migrations
         $this->publishes([__DIR__ . '/database/migrations' => database_path('migrations')], 'migrations');
 
+        // Publish seeds
+        $this->publishes([__DIR__ . '/database/seeds' => database_path('seeds')], 'seeds');
+
         // Publish Config
         $this->publishes([__DIR__ . '/config/pagebuilder.php' => config_path('backpack/pagebuilder.php')]);
 
         $this->mergeConfigFrom(__DIR__.'/config/pagebuilder.php', 'backpack.pagebuilder');
         $this->loadViewsFrom(realpath(__DIR__ . '/resources/views'), 'pagebuilder');
+
+        $this->registerGates();
+        $this->registerPolicies();
     }
 
     /**
@@ -65,5 +82,26 @@ class PageBuilderServiceProvider extends ServiceProvider
     public function register() : void
     {
         $this->setupRoutes();
+    }
+
+    /**
+     * Register Gates
+     *
+     * Registers default gates
+     *
+     * @return void
+     */
+    public function registerGates() : void
+    {
+        Gate::before(function ($user) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
+    }
+
+    public function registerPolicies()
+    {
+        foreach ($this->policies as $key => $value) {
+            Gate::policy($key, $value);
+        }
     }
 }

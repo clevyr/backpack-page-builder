@@ -60,8 +60,17 @@
                 </li>
         </ul>
 
-        <div class="tab-content p-0 {{$horizontalTabs ? '' : 'col-md-9'}}">
+        @php
+            $col = '';
 
+            if ($is_dynamic) {
+                $col = 'col-md-12';
+            } else {
+                $col = $horizontalTabs ? '' : 'col-md-9';
+            }
+        @endphp
+
+        <div class="tab-content p-0 {{ $col }}">
             @foreach ($crud->getTabs() as $k => $tab)
                 <div role="tabpanel" class="tab-pane {{ isset($tabWithError) ? ($tab == $tabWithError ? ' active' : '') : ($k == 0 ? ' active' : '') }}" id="tab_{{ Str::slug($tab) }}">
                     <div class="row">
@@ -72,7 +81,11 @@
 
             <div role="tabpanel" class="tab-pane" id="tab_page-editor">
                 <div class="row">
-                    @include('pagebuilder::crud.form.page_editor')
+                    @if ($is_dynamic)
+                        @include('pagebuilder::crud.form.page_editor_dynamic')
+                    @else
+                        @include('pagebuilder::crud.form.page_editor')
+                    @endif
                 </div>
             </div>
         </div>

@@ -2,21 +2,31 @@
 
 namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
+use Clevyr\PageBuilder\app\Models\Page;
+use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
+use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class PagesCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+    use AuthorizesRequests;
+    use ListOperation;
+    use CreateOperation;
+    use UpdateOperation;
+    use DeleteOperation;
 
     /**
      * @var PageView $page_view
@@ -33,6 +43,11 @@ class PagesCrudController extends CrudController
         parent::__construct();
     }
 
+    /**
+     * Setup
+     *
+     * @throws Exception
+     */
     public function setup()
     {
         $this->crud->setModel(config('backpack.pagebuilder.page_model_class', 'Clevyr\PageBuilder\app\Models\Page'));
@@ -45,8 +60,15 @@ class PagesCrudController extends CrudController
         parent::setup();
     }
 
+    /**
+     * Setup List Operation
+     *
+     * @throws AuthorizationException
+     */
     public function setupListOperation()
     {
+        $this->authorize('view', Page::class);
+
         $this->crud->addColumn('title');
         $this->crud->addColumn('name');
         $this->crud->addColumn('slug');
@@ -76,31 +98,51 @@ class PagesCrudController extends CrudController
         });
     }
 
+    /**
+     * Setup Create Operation
+     *
+     * @throws AuthorizationException
+     */
     public function setupCreateOperation()
     {
+        $this->authorize('create', Page::class);
+
         $this->crud->field('name')->type('text');
         $this->crud->field('title')->type('text');
         $this->crud->field('slug')->type('text');
-        $this->crud->field('page_view_id')
-            ->label('View')
-            ->type('select_from_array')
-            ->allows_null(false)
-            ->options($this->page_view->viewOptions());
+
+        if (backpack_user()->hasRole('Super Admin')) {
+            $this->crud->field('page_view_id')
+                ->label('View')
+                ->type('select_from_array')
+                ->allows_null(false)
+                ->options($this->page_view->viewOptions());
+        }
 
         $this->crud->setValidation(PageCreateRequest::class);
     }
 
+    /**
+     * Setup Update Operation
+     *
+     * @throws AuthorizationException
+     */
     public function setupUpdateOperation()
     {
+        $this->authorize('update', Page::class);
+
         $this->crud->field('name')->type('text')->tab('General Information');
         $this->crud->field('title')->type('text')->tab('General Information');
         $this->crud->field('slug')->type('text')->tab('General Information');
-        $this->crud->field('page_view_id')
-            ->label('View')
-            ->type('select_from_array')
-            ->options($this->page_view->viewOptions())
-            ->allows_null(false)
-            ->tab('General Information');
+
+        if (backpack_user()->hasRole('Super Admin')) {
+            $this->crud->field('page_view_id')
+                ->label('View')
+                ->type('select_from_array')
+                ->options($this->page_view->viewOptions())
+                ->allows_null(false)
+                ->tab('General Information');
+        }
     }
 
     /**
@@ -109,10 +151,14 @@ class PagesCrudController extends CrudController
      * @param int $id
      *
      * @return Application|Factory|View
+     * @throws AuthorizationException
      */
     public function edit($id)
     {
+        $this->authorize('update', Page::class);
+
         $this->crud->hasAccessOrFail('update');
+
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
@@ -123,6 +169,11 @@ class PagesCrudController extends CrudController
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
         $this->data['id'] = $id;
+
+        $is_dynamic = $this->data['entry']->view()->first()->name === 'dynamic';
+
+        $this->data['is_dynamic'] = $is_dynamic;
+        $this->data['all_sections'] = PageSection::all();
 
         // Sections
         $this->data['sections'] = $this->crud->entry
@@ -150,8 +201,6 @@ class PagesCrudController extends CrudController
      */
     public function update()
     {
-        $this->crud->hasAccessOrFail('update');
-
         // execute the FormRequest authorization and validation, if one is required
         $request = $this->crud->validateRequest();
 

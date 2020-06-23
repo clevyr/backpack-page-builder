@@ -9,7 +9,9 @@ use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use SplFileInfo;
 use Throwable;
 
@@ -23,11 +25,6 @@ class PageBuilderFilesController
      * @var Repository|Application|mixed|string $views_path
      */
     private string $views_path = '';
-
-    /**
-     * @var Repository|Application|mixed|string $sections_path
-     */
-    private string $sections_path = '';
 
     /**
      * @var PageView $page_view
@@ -59,32 +56,44 @@ class PageBuilderFilesController
      *
      * Calls the functions to sync the views / sections
      *
-     * @return array|bool[]
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function sync()
+    public function sync(Request $request)
     {
+        // Pages can only be synced if the user is a super admin
+        if(!backpack_user()->hasRole('Super Admin')) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                ], 403);
+            }
+
+            abort(403);
+        }
+
         try {
             $this->loadViews();
 
-            return [
+            return response()->json([
                 'success' => true,
-            ];
+            ]);
         } catch (Exception $e) {
             if (config('app.env') === 'local') {
                 dd($e);
             }
 
-            return [
+            return response()->json([
                 'success' => false,
-            ];
+            ], 500);
         } catch (Throwable $e) {
             if (config('app.env') === 'local') {
                 dd($e);
             }
 
-            return [
+            return response()->json([
                 'success' => false,
-            ];
+            ], 500);
         }
     }
 

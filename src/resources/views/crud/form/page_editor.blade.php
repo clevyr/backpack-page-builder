@@ -1,4 +1,4 @@
-<div class="container container-fluid">
+<div class="col-md-12">
    @foreach($sections as $key => $section)
        @php $slug = 'section_' . $key . '_' . $section['name'] @endphp
        <div class="accordion" id="accordion_{{ $section['name'] }}">
@@ -46,12 +46,3 @@
        </div>
    @endforeach
 </div>
-
-
-@push('after_styles')
-<style type="text/css">
-    .page-editor {
-        background: red;
-    }
-</style>
-@endpush

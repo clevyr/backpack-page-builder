@@ -17,7 +17,7 @@ Route::group([
 ], function () {
     Route::crud('pages', 'PagesCrudController');
     Route::get('pages/sync', 'PageBuilderFilesController@sync');
-    Route::get('pages/field', 'PageBuilderFieldController@get');
+    Route::post('pages/getField', 'PageBuilderFieldController@getField');
 });
 
 Route::group([
