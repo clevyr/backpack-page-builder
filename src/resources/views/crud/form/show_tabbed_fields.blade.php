@@ -51,15 +51,15 @@
             @endforeach
 
             @if ($is_dynamic)
-            <li role="presentation" class="nav-item">
-                <a href="#tab_page-layout"
-                   aria-controls="tab_page-layout"
-                   role="tab"
-                   tab_name="tab_page-layout"
-                   data-toggle="tab"
-                   class="nav-link"
-                >Page Layout</a>
-            </li>
+                <li role="presentation" class="nav-item">
+                    <a href="#tab_page-layout"
+                       aria-controls="tab_page-layout"
+                       role="tab"
+                       tab_name="tab_page-layout"
+                       data-toggle="tab"
+                       class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 1 ? 'active' : '') }}"
+                    >Page Layout</a>
+                </li>
             @endif
 
             <li role="presentation" class="nav-item">
@@ -68,7 +68,7 @@
                    role="tab"
                    tab_name="tab_page-content"
                    data-toggle="tab"
-                   class="nav-link"
+                   class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 2 ? 'active' : '') }}"
                 >Page Content</a>
             </li>
         </ul>

@@ -44,7 +44,7 @@ class PageController extends Controller
     {
         try {
             $page = $this->page->where('slug', $slug)
-                ->with(['view', 'sectionData'])
+                ->with(['view', 'sectionData' => fn ($query) => $query->orderBy('order', 'ASC')])
                 ->firstOrfail();
 
             $this->data['view'] = $page->view;
@@ -67,6 +67,12 @@ class PageController extends Controller
      */
     protected function formatSections(Collection $sections)
     {
-        return $sections->mapWithKeys(fn($item) => [$item->section->name => $item]);
+        return $sections->mapWithKeys(function ($item) {
+            if (!$item->section->is_dynamic) {
+                return [$item->section->name => $item];
+            }
+
+            return [$item->id => $item];
+        });
     }
 }

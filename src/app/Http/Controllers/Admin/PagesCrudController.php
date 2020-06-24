@@ -155,9 +155,9 @@ class PagesCrudController extends CrudController
             $this->crud->addSaveAction([
                 'name' => 'save_and_edit_content',
                 'redirect' => function($crud, $request, $itemId) {
-                    return backpack_url('pages/' . $itemId . '/edit#page-editor',);
+                    return backpack_url('pages/' . $itemId . '/edit#page-content',);
                 },
-                'button_text' => 'Save and Edit Sections',
+                'button_text' => 'Save and Edit Content',
                 'order' => 0,
             ]);
         }

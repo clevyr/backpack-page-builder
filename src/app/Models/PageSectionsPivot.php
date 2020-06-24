@@ -103,13 +103,17 @@ class PageSectionsPivot extends Model
      */
     public function getFormattedDataAttribute()
     {
-        $data = $this->data;
+        if (!is_null($this->data)) {
+            $data = $this->data;
 
-        foreach ($data as $key => $d) {
-            $data[$key] = json_decode($d, true) ?? $d;
+            foreach ($data as $key => $d) {
+                $data[$key] = json_decode($d, true) ?? $d;
+            }
+
+            return $data;
         }
 
-        return $data;
+        return [];
     }
 
     /*
