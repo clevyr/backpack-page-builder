@@ -2,6 +2,7 @@
 
 namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 
+use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
@@ -12,6 +13,8 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use SplFileInfo;
 use Throwable;
 
@@ -27,6 +30,11 @@ class PageBuilderFilesController
     private string $views_path = '';
 
     /**
+     * @var Page $page
+     */
+    private Page $page;
+
+    /**
      * @var PageView $page_view
      */
     private PageView $page_view;
@@ -39,12 +47,15 @@ class PageBuilderFilesController
     /**
      * PageBuilderFilesController constructor.
      *
+     * @param Page $page
      * @param PageView $page_view
      * @param PageSection $page_section
      */
-    public function __construct(PageView $page_view, PageSection $page_section)
+    public function __construct(Page $page, PageView $page_view, PageSection $page_section)
     {
         $this->views_path = resource_path() . '/views/pages/';
+
+        $this->page = $page;
 
         $this->page_view = $page_view;
 
@@ -79,20 +90,14 @@ class PageBuilderFilesController
                 'success' => true,
             ]);
         } catch (Exception $e) {
-            if (config('app.env') === 'local') {
-                dd($e);
-            }
-
             return response()->json([
                 'success' => false,
+                'message' => $e->getMessage(),
             ], 500);
         } catch (Throwable $e) {
-            if (config('app.env') === 'local') {
-                dd($e);
-            }
-
             return response()->json([
                 'success' => false,
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -132,6 +137,8 @@ class PageBuilderFilesController
                 // Restore layout
                 $operation->restore();
             } else {
+                $is_dynamic = Str::contains($page, 'dynamic');
+
                 // Update or create non trashed layouts
                 $operation = $this->page_view->updateOrCreate([
                     'name' => $folder_name,
@@ -139,24 +146,41 @@ class PageBuilderFilesController
                     'name' => $folder_name,
                 ]);
 
+                if (!$is_dynamic) {
+                    $operation = $this->page->updateOrCreate([
+                        'name' => $folder_name,
+                        'title' => $folder_name,
+                        'page_view_id' => $operation->id,
+                    ], [
+                        'name' => $folder_name,
+                        'title' => $folder_name,
+                        'page_view_id' => $operation->id,
+                        'slug' => Str::slug($folder_name),
+                    ]);
+                }
+
                 // Check for page configuration
                 if ($filesystem->exists($page . '/config.php')) {
                     // Load config
                     $config = include($page . '/config.php');
 
-                    // Get sections
-                    $sections = $this->parseSections($page, $folder_name, $config);
+                    $is_dynamic = Str::contains($page, 'dynamic');
 
-                    // Update sections
-                    foreach ($sections as $key => $section) {
-                        PageSectionsPivot::updateOrCreate([
-                            'page_view_id' => $operation->id,
-                            'section_id' => $section,
-                        ], [
-                            'page_view_id' => $operation->id,
-                            'section_id' => $section,
-                            'order' => $key,
-                        ]);
+                    // Get sections
+                    $sections = $this->parseSections($page, $folder_name, $config, $is_dynamic);
+
+                    if (!$is_dynamic) {
+                        // Update sections
+                        foreach ($sections as $key => $section) {
+                            PageSectionsPivot::updateOrCreate([
+                                'page_id' => $operation->id,
+                                'section_id' => $section,
+                            ], [
+                                'page_id' => $operation->id,
+                                'section_id' => $section,
+                                'order' => $key,
+                            ]);
+                        }
                     }
                 }
             }
@@ -176,21 +200,21 @@ class PageBuilderFilesController
     /**
      * Parse Sections
      *
-     * Itterates through the sections and adds them to the database
+     * Iterates through the sections and adds them to the database
      *
      * @param string $page
      * @param string $folder_name
      * @param array $config
-     *
+     * @param bool $is_dynamic
      * @return array|mixed
      * @throws Exception
      */
-    public function parseSections(string $page, string $folder_name, array $config)
+    public function parseSections(string $page, string $folder_name, array $config, bool $is_dynamic)
     {
         $filesystem = new Filesystem();
         $files = $filesystem->allFiles($page . '/sections');
 
-        return $this->addSections($files, $folder_name, $config);
+        return $this->addSections($files, $folder_name, $config, $is_dynamic);
     }
 
     /**
@@ -201,11 +225,11 @@ class PageBuilderFilesController
      * @param SplFileInfo[] $files
      * @param string $folder_name
      * @param array $config
-     *
+     * @param bool $base_is_dynamic
      * @return mixed
      * @throws Exception
      */
-    public function addSections($files, string $folder_name, array $config)
+    public function addSections($files, string $folder_name, array $config, bool $base_is_dynamic)
     {
         $ids = [];
 
@@ -235,12 +259,28 @@ class PageBuilderFilesController
                 // Restore layout
                 $operation->restore();
             } else {
+                // Check for base_is_dynamic, base_is_dynamic is only set to true if the sections
+                // are being loaded from the dynamic folder
+                if (!$base_is_dynamic) {
+                    // Check if the section config is set to dynamic
+                    $is_dynamic = isset($config[$name]['is_dynamic']) && $config[$name]['is_dynamic'];
+
+                    // Unset the is_dynamic property if it is dynamic
+                    if ($is_dynamic) {
+                        unset($config[$name]['is_dynamic']);
+                    }
+                } else {
+                    // Set is_dynamic to true if it is in the dynamic folder
+                    $is_dynamic = true;
+                }
+
                 // Update or create non trashed layouts
                 $operation = $this->page_section->updateOrCreate([
                     'slug' => $base_name,
                 ], [
                     'name' => $name,
-                    'fields' => $config[$name] // Fields configuration,
+                    'fields' => $config[$name], // Fields configuration,
+                    'is_dynamic' => $is_dynamic,
                 ]);
             }
 

@@ -18,6 +18,7 @@ class CreatePageSectionsTable extends Migration
             $table->string('name');
             $table->string('slug');
             $table->json('fields')->nullable();
+            $table->boolean('is_dynamic')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

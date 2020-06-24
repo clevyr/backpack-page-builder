@@ -18,12 +18,13 @@ class CreatePagesSectionsPivotTable extends Migration
     {
         Schema::create('pages_sections_pivot', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('page_view_id');
-            $table->foreign('page_view_id')->references('id')->on('page_views')->cascadeOnDelete();
+            $table->unsignedInteger('page_id');
+            $table->foreign('page_id')->references('id')->on('pages')->cascadeOnDelete();
             $table->unsignedInteger('section_id');
             $table->foreign('section_id')->references('id')->on('page_sections')->cascadeOnDelete();
             $table->json('data')->nullable();
             $table->integer('order')->default(0);
+            $table->uuid('uuid')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

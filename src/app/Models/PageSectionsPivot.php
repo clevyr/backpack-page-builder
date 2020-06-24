@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * Class PageSectionsPivot
@@ -48,6 +49,16 @@ class PageSectionsPivot extends Model
     protected $casts = [
         'data' => 'array',
     ];
+
+    public static function booted()
+    {
+        // On creating assign a uuid
+        static::creating(function ($model) {
+            $model->attributes['uuid'] = Str::uuid();
+        });
+
+        parent::booted();
+    }
 
     /*
     |--------------------------------------------------------------------------

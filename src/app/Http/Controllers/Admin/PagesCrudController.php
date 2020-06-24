@@ -131,9 +131,13 @@ class PagesCrudController extends CrudController
     {
         $this->authorize('update', Page::class);
 
-        $this->crud->field('name')->type('text')->tab('General Information');
-        $this->crud->field('title')->type('text')->tab('General Information');
-        $this->crud->field('slug')->type('text')->tab('General Information');
+        $is_dynamic = $this->crud->getEntry($this->crud->getCurrentEntryId())
+                ->view()
+                ->first()->name === 'dynamic';
+
+        $this->crud->field('name')->type('text')->tab('Page Settings');
+        $this->crud->field('title')->type('text')->tab('Page Settings');
+        $this->crud->field('slug')->type('text')->tab('Page Settings');
 
         if (backpack_user()->hasRole('Super Admin')) {
             $this->crud->field('page_view_id')
@@ -141,7 +145,21 @@ class PagesCrudController extends CrudController
                 ->type('select_from_array')
                 ->options($this->page_view->viewOptions())
                 ->allows_null(false)
-                ->tab('General Information');
+                ->tab('Page Settings');
+        }
+
+        if ($is_dynamic) {
+            // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
+            $this->crud->setOperationSetting('save_actions', []);
+
+            $this->crud->addSaveAction([
+                'name' => 'save_and_edit_content',
+                'redirect' => function($crud, $request, $itemId) {
+                    return backpack_url('pages/' . $itemId . '/edit#page-editor',);
+                },
+                'button_text' => 'Save and Edit Sections',
+                'order' => 0,
+            ]);
         }
     }
 
@@ -173,12 +191,13 @@ class PagesCrudController extends CrudController
         $is_dynamic = $this->data['entry']->view()->first()->name === 'dynamic';
 
         $this->data['is_dynamic'] = $is_dynamic;
-        $this->data['all_sections'] = PageSection::all();
+        $this->data['all_sections'] = PageSection::where('is_dynamic', true)
+            ->get()
+            ->toArray();
 
         // Sections
         $this->data['sections'] = $this->crud->entry
             ->sections()
-            ->orderBy('order', 'DESC')
             ->get()
             ->toArray();
 
@@ -187,7 +206,7 @@ class PagesCrudController extends CrudController
             ->sectionData()
             ->get()
             ->mapWithKeys(function ($item) {
-                return [$item->section_id => $item->data];
+                return [$item->id => $item->data];
             });
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
@@ -208,22 +227,27 @@ class PagesCrudController extends CrudController
         $update = $this->crud->update($request->get($this->crud->model->getKeyName()),
             $this->crud->getStrippedSaveRequest());
 
-        // Get the page view id
-        $page_view_id = $this->crud->getModel()
-            ->findOrFail($request->get('id'))
-            ->page_view_id;
-
         // Get the request sections
         $sections = $request->get('sections');
 
         // Update the sections
         foreach ($sections as $key => $section) {
-            PageSectionsPivot::where([
-                'page_view_id' => $page_view_id,
-                'section_id' => $key
-            ])
-                ->first()
-                ->update(['data' => $section]);
+            if (is_string($section)) {
+                $section = json_decode($section, true);
+            }
+
+            if (!$section['uuid']) {
+                PageSectionsPivot::where('uuid', $section['uuid'])->create([
+                    'page_id' => $request->get('id'),
+                    'section_id' => $section['id'],
+                    'order' => $key,
+                ]);
+            } else {
+                PageSectionsPivot::where('uuid', $section['uuid'])->update([
+                    'data' => $section['data'],
+                    'order' => $key,
+                ]);
+            }
         }
 
         $this->data['entry'] = $this->crud->entry = $update;

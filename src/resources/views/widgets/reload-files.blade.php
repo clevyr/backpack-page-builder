@@ -55,6 +55,11 @@
                             method: 'GET',
                             error(response) {
                                 setLoadingState(false);
+
+                                new Noty({
+                                    type: "error",
+                                    text: 'There was an issue syncing',
+                                }).show();
                             },
                             success(response) {
                                 setLoadingState(false);
@@ -69,7 +74,7 @@
                                 } else {
                                     new Noty({
                                         type: "error",
-                                        text: 'There was an issue updating the layouts and sections!',
+                                        text: response.message,
                                     }).show();
                                 }
                             }

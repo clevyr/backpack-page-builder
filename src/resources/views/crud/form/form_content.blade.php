@@ -28,6 +28,7 @@
 
     <script>
     function initializeFieldsWithJavascript(container) {
+        console.log(container);
       var selector;
       if (container instanceof jQuery) {
         selector = container;

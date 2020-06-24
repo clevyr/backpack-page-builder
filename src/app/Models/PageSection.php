@@ -64,7 +64,15 @@ class PageSection extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-
+    public function pages()
+    {
+        $this->belongsToMany(
+            Page::class,
+            PageSectionsPivot::class,
+            'section_id',
+            'page_id'
+        );
+    }
     /*
     |--------------------------------------------------------------------------
     | SCOPES

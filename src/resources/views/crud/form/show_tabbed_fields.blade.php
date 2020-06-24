@@ -49,15 +49,28 @@
                         >{{ $tab }}</a>
                 </li>
             @endforeach
-                <li role="presentation" class="nav-item">
-                    <a href="#tab_page-editor"
-                       aria-controls="tab_page-editor"
-                       role="tab"
-                       tab_name="tab_page-editor"
-                       data-toggle="tab"
-                       class="nav-link"
-                    >Page Editor</a>
-                </li>
+
+            @if ($is_dynamic)
+            <li role="presentation" class="nav-item">
+                <a href="#tab_page-layout"
+                   aria-controls="tab_page-layout"
+                   role="tab"
+                   tab_name="tab_page-layout"
+                   data-toggle="tab"
+                   class="nav-link"
+                >Page Layout</a>
+            </li>
+            @endif
+
+            <li role="presentation" class="nav-item">
+                <a href="#tab_page-content"
+                   aria-controls="tab_page-content"
+                   role="tab"
+                   tab_name="tab_page-content"
+                   data-toggle="tab"
+                   class="nav-link"
+                >Page Content</a>
+            </li>
         </ul>
 
         @php
@@ -79,13 +92,21 @@
                 </div>
             @endforeach
 
-            <div role="tabpanel" class="tab-pane" id="tab_page-editor">
+            @if ($is_dynamic)
+                <div role="tabpanel" class="tab-pane" id="tab_page-layout">
+                    <div class="row">
+                        @if ($is_dynamic)
+                            @include('pagebuilder::crud.form.page_editor_dynamic_layout')
+                        @else
+                            @include('pagebuilder::crud.form.page_editor')
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <div role="tabpanel" class="tab-pane" id="tab_page-content">
                 <div class="row">
-                    @if ($is_dynamic)
-                        @include('pagebuilder::crud.form.page_editor_dynamic')
-                    @else
-                        @include('pagebuilder::crud.form.page_editor')
-                    @endif
+                    @include('pagebuilder::crud.form.page_editor_dynamic_content')
                 </div>
             </div>
         </div>

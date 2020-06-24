@@ -4,6 +4,8 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -84,26 +86,31 @@ class Page extends Model
      *
      * Returns a list of the sections in the view
      *
-     * @return HasManyThrough
+     * @return BelongsToMany
      */
-    public function sections() : HasManyThrough
+    public function sections() : BelongsToMany
     {
-        return $this->hasManyThrough(
+        return $this->belongsToMany(
             PageSection::class,
             PageSectionsPivot::class,
-            'page_view_id',
-            'id',
-            'page_view_id',
-            'section_id'
-        );
+            'page_id',
+            'section_id',
+        )->withPivot(['uuid', 'id']);
     }
 
-    public function sectionData()
+    /**
+     * Section Data
+     *
+     * Returns the section data
+     *
+     * @return HasMany
+     */
+    public function sectionData() : HasMany
     {
         return $this->hasMany(
             PageSectionsPivot::class,
-            'page_view_id',
-            'page_view_id',
+            'page_id',
+            'id',
         );
     }
 
