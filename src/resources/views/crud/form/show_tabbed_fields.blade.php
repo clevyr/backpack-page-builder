@@ -62,14 +62,21 @@
                 </li>
             @endif
 
-            <li role="presentation" class="nav-item">
+            <li id="has-sections-tab"
+                role="presentation" class="nav-item"
+                {{ $show_tooltip ? 'data-tooltip=tooltip' : '' }}
+                title="{{ $show_tooltip ? 'You must create your page layout before adding content.' : '' }}">
                 <a href="#tab_page-content"
                    aria-controls="tab_page-content"
                    role="tab"
                    tab_name="tab_page-content"
                    data-toggle="tab"
-                   class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 2 ? 'active' : '') }}"
-                >Page Content</a>
+                   {{ !$has_sections ? 'disabled' : '' }}
+                   class="nav-link {{ !$has_sections ? 'disabled' : '' }} {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 2 ? 'active' : '') }}"
+                >
+                    <span class="la la-exclamation-circle has-sections-icon {{ $has_sections ? 'd-none' : 'd-inline' }}"></span>
+                    Page Content
+                </a>
             </li>
         </ul>
 
@@ -112,4 +119,18 @@
         </div>
     </div>
 </div>
+
+@push('after_scripts')
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#has-sections-tab').tooltip();
+
+        var has_sections = @json($has_sections);
+
+        if (!has_sections && window.location.hash === '#page-content') {
+            $('#tab_page-layout').tab('show');
+        }
+    });
+</script>
+@endpush
 

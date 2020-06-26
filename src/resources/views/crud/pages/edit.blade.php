@@ -20,6 +20,14 @@
         @if ($crud->hasAccess('list'))
           <small><a href="{{ url($crud->route) }}" class="hidden-print font-sm"><i class="la la-angle-double-{{ config('backpack.base.html_direction') == 'rtl' ? 'right' : 'left' }}"></i> {{ trans('backpack::crud.back_to_all') }} <span>{{ $crud->entity_name_plural }}</span></a></small>
         @endif
+
+        <small>
+            <a href="{{ url($entry->slug) }}" title="Preview Page" class="btn btn-link font-sm ml-auto" target="_blank">
+                <span class="la la-external-link-alt"></span>
+
+                Preview Page
+            </a>
+        </small>
 	  </h2>
 	</section>
 @endsection

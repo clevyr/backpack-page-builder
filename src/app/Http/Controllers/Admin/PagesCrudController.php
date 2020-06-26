@@ -8,6 +8,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
+use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageUpdateRequest;
 use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
@@ -17,7 +18,10 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PagesCrudController extends CrudController
@@ -155,12 +159,14 @@ class PagesCrudController extends CrudController
             $this->crud->addSaveAction([
                 'name' => 'save_and_edit_content',
                 'redirect' => function($crud, $request, $itemId) {
-                    return backpack_url('pages/' . $itemId . '/edit#page-content',);
+                    return backpack_url('pages/' . $itemId . '/edit#page-content');
                 },
                 'button_text' => 'Save and Edit Content',
                 'order' => 0,
             ]);
         }
+
+        $this->crud->setValidation(PageUpdateRequest::class);
     }
 
     /**
@@ -191,6 +197,7 @@ class PagesCrudController extends CrudController
         $is_dynamic = $this->data['entry']->view()->first()->name === 'dynamic';
 
         $this->data['is_dynamic'] = $is_dynamic;
+
         $this->data['all_sections'] = PageSection::where('is_dynamic', true)
             ->get()
             ->toArray();
@@ -201,13 +208,8 @@ class PagesCrudController extends CrudController
             ->get()
             ->toArray();
 
-        // Sections Data
-        $this->data['section_data'] = $this->crud->entry
-            ->sectionData()
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->id => $item->data];
-            });
+        $this->data['has_sections'] = count($this->data['sections']) > 0;
+        $this->data['show_tooltip'] = $is_dynamic && count($this->data['sections']) <= 0;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getEditView(), $this->data);
@@ -216,12 +218,31 @@ class PagesCrudController extends CrudController
     /**
      * Update
      *
-     * @return array|Response
+     * @return bool|RedirectResponse
      */
     public function update()
     {
-        // execute the FormRequest authorization and validation, if one is required
-        $request = $this->crud->validateRequest();
+        // Set empty ids array, used for removing unused sections
+        $ids = [];
+        $request = $this->crud->getRequest();
+
+        try {
+            // execute the FormRequest authorization and validation, if one is required
+            $this->crud->validateRequest();
+        } catch (ValidationException $e) {
+            if (Arr::has($e->validator->failed(), 'sections') ) {
+                return redirect()
+                    ->to(backpack_url('pages/' . $request->get('id') . '/edit#page-layout'))
+                    ->withErrors($e->validator->getMessageBag())
+                    ->withInput();
+            }
+
+            return redirect()
+                ->to(backpack_url('pages/' . $request->get('id') . '/edit'))
+                ->withErrors($e->validator->getMessageBag())
+                ->withInput();
+        }
+
 
         // update the row in the db
         $update = $this->crud->update($request->get($this->crud->model->getKeyName()),
@@ -229,26 +250,37 @@ class PagesCrudController extends CrudController
 
         // Get the request sections
         $sections = $request->get('sections');
+        $has_sections = is_array($sections) ? count($sections) > 0 : false;
 
-        // Update the sections
-        foreach ($sections as $key => $section) {
-            if (is_string($section)) {
-                $section = json_decode($section, true);
-            }
+        if ($has_sections) {
+            // Update the sections
+            foreach ($sections as $key => $section) {
+                if (is_string($section)) {
+                    $section = json_decode($section, true);
+                }
 
-            if (!$section['uuid']) {
-                PageSectionsPivot::where('uuid', $section['uuid'])->create([
-                    'page_id' => $request->get('id'),
-                    'section_id' => $section['id'],
-                    'order' => $key,
-                ]);
-            } else {
-                PageSectionsPivot::where('uuid', $section['uuid'])->update([
-                    'data' => $section['data'],
-                    'order' => $key,
-                ]);
+                if (!$section['uuid']) {
+                    $operation = PageSectionsPivot::where('uuid', $section['uuid'])->create([
+                        'page_id' => $request->get('id'),
+                        'section_id' => $section['id'],
+                        'order' => $key,
+                    ]);
+                } else {
+                    $operation = PageSectionsPivot::where('uuid', $section['uuid'])->first();
+                    $operation->update([
+                        'data' => $section['data'],
+                        'order' => $key,
+                    ]);
+                }
+
+                $ids[] = $operation instanceof PageSectionsPivot ? $operation->id : $operation;
             }
         }
+
+        // Delete unused sections
+        PageSectionsPivot::where('page_id', $request->get('id'))
+            ->whereNotIn('id', $ids)
+            ->delete();
 
         $this->data['entry'] = $this->crud->entry = $update;
 

@@ -40,15 +40,15 @@ class PageController extends Controller
      *
      * @return void|View
      */
-    public function index($slug, $subs = null)
+    public function index($slug)
     {
         try {
             $page = $this->page->where('slug', $slug)
-                ->with(['view', 'sectionData' => fn ($query) => $query->orderBy('order', 'ASC')])
+                ->with(['view', 'sections' => fn ($query) => $query->orderBy('order', 'ASC')])
                 ->firstOrfail();
 
             $this->data['view'] = $page->view;
-            $this->data['sections'] = $this->formatSections($page->sectionData);
+            $this->data['sections'] = $this->formatSections($page->sections);
 
             $template = $page->view->name . '.' . 'index';
 
@@ -68,8 +68,8 @@ class PageController extends Controller
     protected function formatSections(Collection $sections)
     {
         return $sections->mapWithKeys(function ($item) {
-            if (!$item->section->is_dynamic) {
-                return [$item->section->name => $item];
+            if (!$item->is_dynamic) {
+                return [$item->name => $item];
             }
 
             return [$item->id => $item];

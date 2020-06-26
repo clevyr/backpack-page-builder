@@ -24,7 +24,6 @@ class Page extends Model
     | GLOBAL VARIABLES
     |--------------------------------------------------------------------------
     */
-
     /**
      * @var string $table
      */
@@ -95,7 +94,28 @@ class Page extends Model
             PageSectionsPivot::class,
             'page_id',
             'section_id',
-        )->withPivot(['uuid', 'id']);
+        )
+            ->wherePivot('deleted_at', '=', null)
+            ->withPivot(['uuid', 'id', 'data', 'deleted_at']);
+    }
+
+    /**
+     * Trashed Sections
+     *
+     * Returns a list of trashed sections
+     *
+     * @return BelongsToMany
+     */
+    public function trashedSections() : BelongsToMany
+    {
+        return $this->belongsToMany(
+            PageSection::class,
+            PageSectionsPivot::class,
+            'page_id',
+            'section_id',
+        )
+            ->wherePivot('deleted_at', '!=', null)
+            ->withPivot(['uuid', 'id', 'data', 'deleted_at']);
     }
 
     /**
@@ -105,14 +125,14 @@ class Page extends Model
      *
      * @return HasMany
      */
-    public function sectionData() : HasMany
-    {
-        return $this->hasMany(
-            PageSectionsPivot::class,
-            'page_id',
-            'id',
-        );
-    }
+//    public function sectionData() : HasMany
+//    {
+//        return $this->hasMany(
+//            PageSectionsPivot::class,
+//            'page_id',
+//            'id',
+//        );
+//    }
 
     /*
     |--------------------------------------------------------------------------

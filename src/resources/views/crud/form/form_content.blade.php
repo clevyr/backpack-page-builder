@@ -28,7 +28,6 @@
 
     <script>
     function initializeFieldsWithJavascript(container) {
-        console.log(container);
       var selector;
       if (container instanceof jQuery) {
         selector = container;
@@ -49,7 +48,6 @@
     }
 
     jQuery('document').ready(function($){
-
       // trigger the javascript for all fields that have their js defined in a separate method
       initializeFieldsWithJavascript('form');
 

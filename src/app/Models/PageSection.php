@@ -51,6 +51,7 @@ class PageSection extends Model
 
     protected $appends = [
         'human_name',
+        'formatted_data',
     ];
 
     /*
@@ -84,6 +85,28 @@ class PageSection extends Model
     | ACCESORS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Get Formatted Data Attribute
+     *
+     * Json decodes or returns the original section data
+     *
+     * @return mixed
+     */
+    public function getFormattedDataAttribute()
+    {
+        if (isset($this->pivot->data) && !is_null($this->pivot->data)) {
+            $data = json_decode($this->pivot->data, true);
+
+            foreach ($data as $key => $d) {
+                $data[$key] = json_decode($d, true) ?? $d;
+            }
+
+            return $data;
+        }
+
+        return [];
+    }
 
     /**
      * Get Human Name Attribute
