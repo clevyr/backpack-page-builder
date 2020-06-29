@@ -81,6 +81,32 @@ class Page extends Model
     }
 
     /**
+     * View
+     *
+     * Returns the view
+     *
+     * @return HasOne
+     */
+    public function activeViews() : HasOne
+    {
+        return $this->hasOne(PageView::class, 'id', 'page_view_id')
+            ->where('deleted_at', '=', null);
+    }
+
+    /**
+     * View
+     *
+     * Returns the view
+     *
+     * @return HasOne
+     */
+    public function trashedViews() : HasOne
+    {
+        return $this->hasOne(PageView::class, 'id', 'page_view_id')
+            ->where('deleted_at', '!=', null);
+    }
+
+    /**
      * Sections
      *
      * Returns a list of the sections in the view
@@ -118,22 +144,6 @@ class Page extends Model
             ->withPivot(['uuid', 'id', 'data', 'deleted_at']);
     }
 
-    /**
-     * Section Data
-     *
-     * Returns the section data
-     *
-     * @return HasMany
-     */
-//    public function sectionData() : HasMany
-//    {
-//        return $this->hasMany(
-//            PageSectionsPivot::class,
-//            'page_id',
-//            'id',
-//        );
-//    }
-
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -151,4 +161,5 @@ class Page extends Model
     | MUTATORS
     |--------------------------------------------------------------------------
     */
+
 }

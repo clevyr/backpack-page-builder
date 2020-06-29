@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Clevyr\PageBuilder\app\Models\Page;
 use Exception;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -35,14 +36,20 @@ class PageController extends Controller
     }
 
     /**
-     * @param $slug
-     * @param null $subs
+     *  Index
      *
+     * @param Request $request
+     * @param string $slug
      * @return void|View
      */
-    public function index($slug)
+    public function index(Request $request, string $slug = '/')
     {
         try {
+
+            if ($slug === '/') {
+                $slug = 'homepage';
+            }
+
             $page = $this->page->where('slug', $slug)
                 ->with(['view', 'sections' => fn ($query) => $query->orderBy('order', 'ASC')])
                 ->firstOrfail();
@@ -52,7 +59,7 @@ class PageController extends Controller
 
             $template = $page->view->name . '.' . 'index';
 
-            return view('pages.' . $template, $this->data);
+            return view('pagebuilder::pages.' . $template, $this->data);
         } catch(Exception $e) {
             abort(404);
         }

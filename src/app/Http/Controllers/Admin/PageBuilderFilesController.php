@@ -2,6 +2,7 @@
 
 namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
@@ -12,9 +13,9 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
+use Illuminate\View\FileViewFinder;
 use SplFileInfo;
 use Throwable;
 
@@ -22,13 +23,8 @@ use Throwable;
  * Class PageBuilderFilesController
  * @package Clevyr\PageBuilder\app\Http\Controllers\Admin
  */
-class PageBuilderFilesController
+class PageBuilderFilesController extends Controller
 {
-    /**
-     * @var Repository|Application|mixed|string $views_path
-     */
-    private string $views_path = '';
-
     /**
      * @var Page $page
      */
@@ -53,8 +49,6 @@ class PageBuilderFilesController
      */
     public function __construct(Page $page, PageView $page_view, PageSection $page_section)
     {
-        $this->views_path = resource_path() . '/views/pages/';
-
         $this->page = $page;
 
         $this->page_view = $page_view;
@@ -110,13 +104,8 @@ class PageBuilderFilesController
      */
     public function loadViews()
     {
-        if (!is_dir($this->views_path)) {
-            throw new Exception('Views path does not exist');
-        }
-
-        // Get files glob
         $filesystem = new Filesystem();
-        $pages = $filesystem->directories($this->views_path);
+        $pages = $filesystem->directories(resource_path() . '/views/vendor/pagebuilder/pages');
 
         // Set empty ids array
         $ids = [];
@@ -140,21 +129,21 @@ class PageBuilderFilesController
                 $is_dynamic = Str::contains($page, 'dynamic');
 
                 // Update or create non trashed layouts
-                $operation = $this->page_view->updateOrCreate([
+                $view = $this->page_view->updateOrCreate([
                     'name' => $folder_name,
                 ], [
                     'name' => $folder_name,
                 ]);
 
                 if (!$is_dynamic) {
-                    $operation = $this->page->updateOrCreate([
+                    $page_entity = $this->page->updateOrCreate([
                         'name' => $folder_name,
                         'title' => $folder_name,
-                        'page_view_id' => $operation->id,
+                        'page_view_id' => $view->id,
                     ], [
                         'name' => $folder_name,
                         'title' => $folder_name,
-                        'page_view_id' => $operation->id,
+                        'page_view_id' => $view->id,
                         'slug' => Str::slug($folder_name),
                     ]);
                 }
@@ -169,14 +158,15 @@ class PageBuilderFilesController
                     // Get sections
                     $sections = $this->parseSections($page, $folder_name, $config, $is_dynamic);
 
+                    // update or create the pivot data for the static sections
                     if (!$is_dynamic) {
                         // Update sections
                         foreach ($sections as $key => $section) {
                             PageSectionsPivot::updateOrCreate([
-                                'page_id' => $operation->id,
+                                'page_id' => $page_entity->id,
                                 'section_id' => $section,
                             ], [
-                                'page_id' => $operation->id,
+                                'page_id' => $page_entity->id,
                                 'section_id' => $section,
                                 'order' => $key,
                             ]);
@@ -186,8 +176,8 @@ class PageBuilderFilesController
             }
 
             // Update the $ids array with restored or new / updated records
-            if ($operation->id) {
-                $ids[] = $operation->id;
+            if ($view->id) {
+                $ids[] = $view->id;
             }
         }
 
@@ -265,7 +255,8 @@ class PageBuilderFilesController
                     // Check if the section config is set to dynamic
                     $is_dynamic = isset($config[$name]['is_dynamic']) && $config[$name]['is_dynamic'];
 
-                    // Unset the is_dynamic property if it is dynamic
+                    // Unset the is_dynamic property if it is dynamic so we don't insert it into
+                    // the data column
                     if ($is_dynamic) {
                         unset($config[$name]['is_dynamic']);
                     }

@@ -19,7 +19,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -73,6 +72,8 @@ class PagesCrudController extends CrudController
     {
         $this->authorize('view', Page::class);
 
+        $this->crud->addClause('whereHas', 'activeViews');
+
         $this->crud->addColumn('title');
         $this->crud->addColumn('name');
         $this->crud->addColumn('slug');
@@ -90,6 +91,10 @@ class PagesCrudController extends CrudController
             'format' => 'D MMM Y'
         ]);
 
+        // Buttons
+        $this->crud->removeButton('delete');
+        $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
+
         // Filters
         $this->crud->addFilter([
             'type' => 'simple',
@@ -100,6 +105,22 @@ class PagesCrudController extends CrudController
         function () {
             $this->crud->addClause('onlyTrashed');
         });
+    }
+
+    /**
+     * Display all rows in the database for this entity.
+     *
+     * @return View
+     */
+    public function index()
+    {
+        $this->crud->hasAccessOrFail('list');
+
+        $this->data['crud'] = $this->crud;
+        $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
+
+        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        return view($this->crud->getListView(), $this->data);
     }
 
     /**
@@ -218,7 +239,7 @@ class PagesCrudController extends CrudController
     /**
      * Update
      *
-     * @return bool|RedirectResponse
+     * @return array|bool|RedirectResponse|\Illuminate\Http\Response
      */
     public function update()
     {
@@ -291,5 +312,26 @@ class PagesCrudController extends CrudController
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($update->getKey());
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return string
+     */
+    public function destroy($id)
+    {
+        if ($this->crud->getEntry($id)->view()->firstOrFail()->name !== 'dynamic') {
+            abort(403);
+        }
+
+        $this->crud->hasAccessOrFail('delete');
+
+        // get entry ID from Request (makes sure its the last ID for nested resources)
+        $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        return $this->crud->delete($id);
     }
 }
