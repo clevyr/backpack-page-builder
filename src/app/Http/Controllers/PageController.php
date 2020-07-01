@@ -59,7 +59,7 @@ class PageController extends Controller
 
             $template = $page->view->name . '.' . 'index';
 
-            return view('pagebuilder::pages.' . $template, $this->data);
+            return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
             abort(404);
         }
