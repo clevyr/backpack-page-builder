@@ -105,7 +105,7 @@ class PageBuilderFilesController extends Controller
     public function loadViews()
     {
         $filesystem = new Filesystem();
-        $pages = $filesystem->directories(resource_path() . '/views/vendor/pagebuilder/pages');
+        $pages = $filesystem->directories(resource_path() . '/views/pages');
 
         // Set empty ids array
         $ids = [];

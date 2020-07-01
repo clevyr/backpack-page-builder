@@ -14,8 +14,8 @@ class SuperAdminSeeder extends Seeder
     public function run()
     {
         factory(User::class)->create([
-            'name' => 'Anthony Protano',
-            'email' => 'admin@clevyr.com',
+            'name' => 'Super Admin User',
+            'email' => 'super-admin@example.com',
             'password' => Hash::make('password'),
         ])->assignRole('Super Admin');
     }
