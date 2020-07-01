@@ -1,15 +1,8 @@
 {
-    "name": "clevyr/page-builder",
-    "description": "Clevyr INC Page Builder for backpack",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Anthony Protano",
-            "email": "anthony@clevyr.com",
-            "homepage": "https://clevyr.com"
-        }
-    ],
-    "homepage": "",
+    "name": "clevyr/backpack-page-builder",
+    "description": "Clevyr Page Builder for Backpack",
+    "license": "GPL-3.0-or-later",
+    "homepage": "https://clevyr.com",
     "keywords": ["Laravel", "Backpack", "Backpack for Laravel", "Addon", "Admin Panel", "Toggle"],
     "require": {
         "backpack/crud": "4.1.*",
