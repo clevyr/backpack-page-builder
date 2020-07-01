@@ -79,7 +79,7 @@ class PageController extends Controller
                 return [$item->name => $item];
             }
 
-            return [$item->id => $item];
+            return [$item->pivot->uuid => $item];
         });
     }
 }
