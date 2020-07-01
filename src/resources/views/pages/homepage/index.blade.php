@@ -1,3 +1,3 @@
 <div>
-    @include('vendor.pagebuilder.pages.homepage.sections.default')
+    @include('pages.homepage.sections.default')
 </div>
