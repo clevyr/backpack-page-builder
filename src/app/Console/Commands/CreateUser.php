@@ -33,18 +33,24 @@ class CreateUser extends Command
     {
         $this->info('Creating a new user');
 
+        // Name
         if (!$name = $this->option('name')) {
             $name = $this->ask('Name');
         }
 
+        // Email
         if (!$email = $this->option('email')) {
             $email = $this->ask('Email');
         }
 
+        // Password
         if (!$this->option('password')) {
             $password = $this->ask('Password');
+        } else {
+            $password = $this->option('password');
         }
 
+        // Encrypt
         if ($this->option('encrypt')) {
             $password = Hash::make($password);
         }

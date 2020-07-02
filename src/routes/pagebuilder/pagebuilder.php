@@ -10,20 +10,32 @@
 |
 */
 
+// Admin
 Route::group([
-    'namespace' => 'Clevyr\PageBuilder\app\Http\Controllers\Admin',
+    'namespace' => '',
     'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
     'prefix' => config('backpack.base.route_prefix', 'admin'),
 ], function () {
-    Route::crud('pages', 'PagesCrudController');
-    Route::get('pages/sync', 'PageBuilderFilesController@sync');
+    Route::crud('pages', config('pagebuilder.pages_crud_controller',
+        'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderCrudController'));
+
+    Route::get('pages/sync',
+        config('pagebuilder.pages_file_controller',
+            'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController')
+        . '@sync');
 });
 
+// Frontend
 Route::group([
-    'namespace' => 'Clevyr\PageBuilder\app\Http\Controllers',
-    'middleware' => ['web'],
+    'namespace' => '',
+    'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
 ], function () {
     // Catch all for pages
-    Route::get('{page}/{subs?}', ['uses' => 'PageController@index'])
+    Route::get('{page}/{subs?}',
+        ['uses' =>
+            config('pagebuilder.pages_controller',
+                'Clevyr\PageBuilder\app\Http\Controllers\PageController')
+            . '@index'
+        ])
         ->where(['page' => '^(((?=(?!admin))(?=(?!\/)).))*$', 'subs' => '.*']);
 });

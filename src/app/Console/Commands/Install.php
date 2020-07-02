@@ -35,7 +35,7 @@ class Install extends Command
     {
         // Setup progress bar
         $this->progressBar = $this->output->createProgressBar();
-        $this->progressBar->setMaxSteps(14);
+        $this->progressBar->setMaxSteps(7);
         $this->progressBar->minSecondsBetweenRedraws(0);
         $this->progressBar->maxSecondsBetweenRedraws(120);
         $this->progressBar->setRedrawFrequency(1);
@@ -49,7 +49,6 @@ class Install extends Command
             '--provider' => 'Spatie\Permission\PermissionServiceProvider',
             '--tag' => 'migrations',
         ]);
-        $this->progressBar->advance();
 
         // Run migrations
         $this->migrate();
@@ -60,14 +59,12 @@ class Install extends Command
             '--provider' => 'Spatie\Permission\PermissionServiceProvider',
             '--tag' => 'config',
         ]);
-        $this->progressBar->advance();
 
         // Publish permission manager
         $this->info(' Publishing permissions manager');
         $this->executeArtisanProcess('vendor:publish', [
             '--provider' => 'Backpack\PermissionManager\PermissionManagerServiceProvider',
         ]);
-        $this->progressBar->advance();
 
         // Run migrations
         $this->migrate();
@@ -77,7 +74,6 @@ class Install extends Command
         $this->executeArtisanProcess('vendor:publish', [
             '--provider' => 'Clevyr\PageBuilder\PageBuilderServiceProvider',
         ]);
-        $this->progressBar->advance();
 
         // Migrate
         $this->migrate();
@@ -96,6 +92,5 @@ class Install extends Command
     {
         $this->info(' Running Migrations');
         $this->executeArtisanProcess('migrate');
-        $this->progressBar->advance();
     }
 }

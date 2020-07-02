@@ -23,7 +23,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-class PagesCrudController extends CrudController
+class PageBuilderCrudController extends CrudController
 {
     use AuthorizesRequests;
     use ListOperation;
@@ -37,7 +37,7 @@ class PagesCrudController extends CrudController
     private PageView $page_view;
 
     /**
-     * PagesCrudController constructor.
+     * PageBuilderCrudController constructor.
      */
     public function __construct()
     {

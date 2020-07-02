@@ -71,6 +71,8 @@
                                         type: "success",
                                         text: 'Layouts and sections updated!',
                                     }).show();
+
+                                    location.reload();
                                 } else {
                                     new Noty({
                                         type: "error",
