@@ -6,6 +6,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Spatie\Permission\PermissionRegistrar as PermissionRegistrarAlias;
 
+/**
+ * Class RolePermissionsSeeder
+ */
 class RolePermissionsSeeder extends Seeder
 {
     /**

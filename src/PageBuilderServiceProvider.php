@@ -2,6 +2,8 @@
 
 namespace Clevyr\PageBuilder;
 
+use Clevyr\PageBuilder\app\Console\Commands\CreateUser;
+use Clevyr\PageBuilder\app\Console\Commands\Install;
 use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Policies\PageBuilderCrudPolicy;
 use Illuminate\Support\Facades\Gate;
@@ -23,6 +25,14 @@ class PageBuilderServiceProvider extends ServiceProvider
      */
     protected array $policies = [
         Page::class => PageBuilderCrudPolicy::class,
+    ];
+
+    /**
+     * @var string[] $commands
+     */
+    protected $commands = [
+        Install::class,
+        CreateUser::class,
     ];
 
     /**
@@ -81,7 +91,11 @@ class PageBuilderServiceProvider extends ServiceProvider
      */
     public function register() : void
     {
+        // Setup routes
         $this->setupRoutes();
+
+        // Setup commands
+        $this->commands($this->commands);
     }
 
     /**

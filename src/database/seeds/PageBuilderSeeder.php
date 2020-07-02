@@ -2,6 +2,9 @@
 
 use Illuminate\Database\Seeder;
 
+/**
+ * Class PageBuilderSeeder
+ */
 class PageBuilderSeeder extends Seeder
 {
     /**
@@ -13,7 +16,6 @@ class PageBuilderSeeder extends Seeder
     {
          $this->call([
              RolePermissionsSeeder::class,
-             SuperAdminSeeder::class,
          ]);
     }
 }

@@ -13,27 +13,58 @@ Run `composer require clevyr/backpack-page-builder`
 
 This will install the Page Builder and the https://github.com/Laravel-Backpack/PermissionManager package
 
-Follow the installation instructions for the Permission Manager package
+To publish and migrate the Permission Manager and Page Builder run the following command
 
-please see https://github.com/Laravel-Backpack/PermissionManager
+Run `php artisan pagebuilder:install`
 
-run `php artisan vendor:publish --provider="Clevyr\PageBuilder\PageBuilderServiceProvider"`
+run `composer dump-autoload`
 
-to publish the Page Builder files
+run `php artisan db:seed --class=PageBuilderSeeder`
 
-run `php artisan migrate --seed`
+Add the following to your `sidebar_content.blade.php` file
 
-This will migrate the Page Builder migrations and run the role / permissions seeder
+```blade
+@canany(['View User List', 'View Role List', 'View Permission List'])
+    <li class="nav-item nav-dropdown">
+        <a class="nav-link nav-dropdown-toggle" href="#"><i class="nav-icon la la-users"></i> Authentication</a>
 
-A super admin user will also be created, you can login with the following credentials
+        <ul class="nav-dropdown-items">
+            @can('View User List')
+                <li class="nav-item"><a class="nav-link" href="{{ backpack_url('user') }}"><i class="nav-icon la la-user"></i> <span>Users</span></a></li>
+            @endcan
 
+            @can('View Role List')
+            <li class="nav-item"><a class="nav-link" href="{{ backpack_url('role') }}"><i class="nav-icon la la-id-badge"></i> <span>Roles</span></a></li>
+            @endcan
+
+            @can('View Permission List')
+                <li class="nav-item"><a class="nav-link" href="{{ backpack_url('permission') }}"><i class="nav-icon la la-key"></i> <span>Permissions</span></a></li>
+            @endcan
+        </ul>
+    </li>
+@endcanany
+
+@can('View Page List')
+    <li class="nav-item nav-dropdown">
+        <a class="nav-link nav-dropdown-toggle" href="#">
+            <i class="nav-icon la la-folder"></i>
+            Pages
+        </a>
+
+        <ul class="nav-dropdown-items">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ backpack_url('pages') }}">
+                    <i class="nav-icon la la-address-book"></i>
+
+                    <span>
+                        Manage
+                    </span>
+                </a>
+            </li>
+        </ul>
+    </li>
+@endcan
 ```
-email: super-admin@example.com
-password: password
-```
-
-Login using the super admin credentials, navigate to **pages -> manage** and click the sync button in the bottom
-right of the page, once it is done, reload the page.
 
 # Pages how to - Coming soon
 
