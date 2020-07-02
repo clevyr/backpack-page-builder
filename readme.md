@@ -211,9 +211,10 @@ return [
     'default' => [ // Section name, the blade file for the section's name must be the same as this key
         'is_dynamic' => true, // Defaults to false, if this is set it will be available to be used in dynamic pages
         'title' => [ // Field name
-            'type' => 'text', // 
-            'name' => 'title',
-            'label' => 'Title'
+            'type' => 'text', // crud field type
+            'name' => 'title', // crud field name
+            'label' => 'Title' // crud field label
+            // ... Any other crud field properties
         ],
         'sub-title' => [
             'type' => 'text',
