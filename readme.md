@@ -171,6 +171,9 @@ Contents
 - config.php - Holds the configuration for the page sections
 - index.blade.php - Is the view of the page
 
+_Note - Pages sections will not sync if there is not a `.blade` file inside the sections directory and
+a config property inside the config.php_
+
 #### Sections
 
 The `sections` folder holds the `.blade` files that correspond to the section key in the `config.php`
