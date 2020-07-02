@@ -126,7 +126,7 @@ Click the sync icon in the bottom right, this will load in static pages (Every f
 
 Navigate to the page management page and click edit on the homepage
 
-####Page Settings
+#### Page Settings
 **Name:** Page name, admin functionality only, does not affect the functionality of the page's at all
 
 **Title:** Page title, also generates the slug as you type
@@ -135,7 +135,7 @@ Navigate to the page management page and click edit on the homepage
 
 **View:** Page view
 
-####Page Content
+#### Page Content
 
 The page content populates with a list of sections, and their fields which you can edit.
 
