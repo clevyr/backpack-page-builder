@@ -17,7 +17,24 @@ To publish and migrate the Permission Manager and Page Builder run the following
 
 Run `php artisan pagebuilder:install`
 
+---
+
+Update the config -> backpack -> base.php file
+```php
+'guard' => 'backback',
+```
+
+to
+
+```php
+'guard' => 'config('auth.defaults.guard')',
+```
+
+---
+
 run `composer dump-autoload`
+
+Seed the permissions
 
 run `php artisan db:seed --class=PageBuilderSeeder`
 
