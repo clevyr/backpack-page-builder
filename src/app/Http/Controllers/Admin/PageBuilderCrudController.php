@@ -94,6 +94,7 @@ class PageBuilderCrudController extends CrudController
         // Buttons
         $this->crud->removeButton('delete');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
+        $this->crud->addButtonFromView('line', 'preview-page-button', 'preview-page-button', 'beginning');
 
         // Filters
         $this->crud->addFilter([
@@ -226,6 +227,7 @@ class PageBuilderCrudController extends CrudController
         // Sections
         $this->data['sections'] = $this->crud->entry
             ->sections()
+            ->orderBy('order', 'ASC')
             ->get()
             ->toArray();
 
@@ -284,13 +286,13 @@ class PageBuilderCrudController extends CrudController
                     $operation = PageSectionsPivot::where('uuid', $section['uuid'])->create([
                         'page_id' => $request->get('id'),
                         'section_id' => $section['id'],
-                        'order' => $key,
+                        'order' => $section['order'],
                     ]);
                 } else {
                     $operation = PageSectionsPivot::where('uuid', $section['uuid'])->first();
                     $operation->update([
                         'data' => $section['data'],
-                        'order' => $key,
+                        'order' => $section['order'],
                     ]);
                 }
 

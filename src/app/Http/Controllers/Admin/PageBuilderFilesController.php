@@ -161,15 +161,22 @@ class PageBuilderFilesController extends Controller
                     // update or create the pivot data for the static sections
                     if (!$is_dynamic) {
                         // Update sections
-                        foreach ($sections as $key => $section) {
-                            PageSectionsPivot::updateOrCreate([
+                        foreach ($sections as $key => $fields) {
+                            $uoc = PageSectionsPivot::updateOrCreate([
                                 'page_id' => $page_entity->id,
-                                'section_id' => $section,
+                                'section_id' => $key,
                             ], [
                                 'page_id' => $page_entity->id,
-                                'section_id' => $section,
+                                'section_id' => $key,
                                 'order' => $key,
                             ]);
+
+                            if (is_null($uoc->data)) {
+                                PageSectionsPivot::find($uoc->id)
+                                    ->update([
+                                        'data' => $this->parseFields($fields),
+                                    ]);
+                            }
                         }
                     }
                 }
@@ -185,6 +192,22 @@ class PageBuilderFilesController extends Controller
         $this->page_view->whereNotIn('id', $ids)
             ->where('deleted_at', '=', null)
             ->delete();
+    }
+
+    /**
+     * Parse Fields
+     *
+     * Pulls out the field's key and creates a new empty array
+     *
+     * @param array $fields
+     * @return array
+     */
+    private function parseFields(array $fields) : array
+    {
+        return collect($fields)
+            ->keys()
+            ->mapWithKeys(fn(string $key): array => [$key => ''])
+            ->toArray();
     }
 
     /**
@@ -221,7 +244,7 @@ class PageBuilderFilesController extends Controller
      */
     public function addSections($files, string $folder_name, array $config, bool $base_is_dynamic)
     {
-        $ids = [];
+        $sections = [];
 
         foreach($files as $file) {
             // Set file info
@@ -277,10 +300,10 @@ class PageBuilderFilesController extends Controller
 
             // Update the $ids array with restored or new / updated records
             if ($operation->id) {
-                $ids[] = $operation->id;
+                $sections[$operation->id] = $config[$name];
             }
         }
 
-        return $ids;
+        return $sections;
     }
 }

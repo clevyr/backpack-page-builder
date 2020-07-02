@@ -1,7 +1,11 @@
-@if ($crud->hasAccess('delete'))
-    <a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="{{ url($crud->route.'/'.$entry->getKey()) }}" class="btn btn-sm btn-link" data-button-type="delete"><i class="la la-trash"></i> {{ trans('backpack::crud.delete') }}</a>
-@endif
+@can('Delete Page')
+    @if ($crud->hasAccess('delete'))
+        <a href="javascript:void(0)" onclick="deleteEntry(this)" data-route="{{ url($crud->route.'/'.$entry->getKey()) }}" class="btn btn-sm btn-link" data-button-type="delete"><i class="la la-trash"></i> {{ trans('backpack::crud.delete') }}</a>
+    @endif
+@endcan
 
+@can('Delete Page')
+@if ($crud->hasAccess('delete'))
 {{-- Button Javascript --}}
 {{-- - used right away in AJAX operations (ex: List) --}}
 {{-- - pushed to the end of the page, after jQuery is loaded, for non-AJAX operations (ex: Show) --}}
@@ -111,3 +115,5 @@
     // crud.addFunctionToDataTablesDrawEventQueue('deleteEntry');
 </script>
 @if (!request()->ajax()) @endpush @endif
+@endif
+@endcan

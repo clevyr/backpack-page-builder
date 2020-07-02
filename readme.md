@@ -8,6 +8,9 @@
 # Prerequisite
 Laravel Backpack must be installed
 
+1. Laravel 7
+2. PHP 7.4
+
 # Installation
 
 Run `composer require clevyr/backpack-page-builder`

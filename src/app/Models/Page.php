@@ -122,7 +122,7 @@ class Page extends Model
             'section_id',
         )
             ->wherePivot('deleted_at', '=', null)
-            ->withPivot(['uuid', 'id', 'data', 'deleted_at']);
+            ->withPivot(['uuid', 'id', 'data', 'order', 'deleted_at']);
     }
 
     /**

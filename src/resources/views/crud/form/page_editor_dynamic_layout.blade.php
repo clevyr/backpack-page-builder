@@ -4,6 +4,7 @@
             @php
                 $slug = 'section_' . $key . '_' . $section['name'];
                 $uuid = $section['pivot']['uuid'];
+                $order = $section['pivot']['order'];
                 $accordion_id = "accordion_{$uuid}"
             @endphp
             <div class="accordion"
@@ -23,6 +24,7 @@
                         </button>
 
                         <input type="hidden" name="sections[{{ $key }}][uuid]" value="{{ $uuid }}" />
+                        <input type="hidden" name="sections[{{ $key }}][order]" value="{{ $order }}" class="section_order" />
                     </div>
                 </div>
             </div>
@@ -46,7 +48,17 @@
 </div>
 
 @push('after_scripts')
+{{-- Weird hack to make sure the tooltip function doesnt get overridden --}}
+{{-- https://stackoverflow.com/questions/19970082/cannot-call-methods-on-tooltip-prior-to-initialization --}}
 <script type="text/javascript">
+    var _tooltip = jQuery.fn.tooltip;
+</script>
+
+<script src="/packages/jquery-ui-dist/jquery-ui.min.js"></script>
+
+<script type="text/javascript">
+    jQuery.fn.tooltip = _tooltip;
+
     $(document).ready(function () {
         var content = $('#page-editor-content');
         var has_sections = @json($has_sections);
@@ -55,10 +67,11 @@
         var new_sections_count = 0;
 
         if (has_sections) {
-            tab_content_item.data('title', 'You must create your page layout before adding content.');
+            tab_content_item.data('title', 'You must create or update your page layout before adding content.');
             tab_content_item.tooltip('disable');
         }
 
+        // Add section listener
         $(document).on('click', '.add-section', function (e) {
             e.preventDefault();
 
@@ -76,6 +89,7 @@
             setTooltip(has_sections, tab_content_item, new_sections_count);
         })
 
+        // Remove section listener
         $(document).on('click', '.remove-section', function (e) {
             e.preventDefault();
 
@@ -96,6 +110,15 @@
             setTooltip(has_sections, tab_content_item, new_sections_count);
 
             $(this).tooltip('hide');
+        });
+
+        var sortable = content.sortable({
+            stop: function () {
+                $.each(sortable.sortable('toArray'), function (key, value) {
+                    var order = $('#' + value + ' .section_order');
+                    order.val(key);
+                });
+            },
         });
     });
 
