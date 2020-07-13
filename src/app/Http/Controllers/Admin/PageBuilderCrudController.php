@@ -174,19 +174,17 @@ class PageBuilderCrudController extends CrudController
                 ->tab('Page Settings');
         }
 
-        if ($is_dynamic) {
-            // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
-            $this->crud->setOperationSetting('save_actions', []);
+        // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
+        $this->crud->setOperationSetting('save_actions', []);
 
-            $this->crud->addSaveAction([
-                'name' => 'save_and_edit_content',
-                'redirect' => function($crud, $request, $itemId) {
-                    return backpack_url('pages/' . $itemId . '/edit#page-content');
-                },
-                'button_text' => 'Save and Edit Content',
-                'order' => 0,
-            ]);
-        }
+        $this->crud->addSaveAction([
+            'name' => 'save_and_edit_content',
+            'redirect' => function($crud, $request, $itemId) {
+                return backpack_url('pages/' . $itemId . '/edit#page-content');
+            },
+            'button_text' => 'Save and Edit Content',
+            'order' => 0,
+        ]);
 
         $this->crud->setValidation(PageUpdateRequest::class);
     }
@@ -286,13 +284,13 @@ class PageBuilderCrudController extends CrudController
                     $operation = PageSectionsPivot::where('uuid', $section['uuid'])->create([
                         'page_id' => $request->get('id'),
                         'section_id' => $section['id'],
-                        'order' => $section['order'],
+                        'order' => isset($section['order']) ? $section['order'] : $key,
                     ]);
                 } else {
                     $operation = PageSectionsPivot::where('uuid', $section['uuid'])->first();
                     $operation->update([
                         'data' => $section['data'],
-                        'order' => $section['order'],
+                        'order' => isset($section['order']) ? $section['order'] : $key,
                     ]);
                 }
 
