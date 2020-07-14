@@ -84,6 +84,21 @@
                     .replace(/ /g, '-')
                     .replace(/-\s*$/, ""));
             });
+
+            // Set is dirty
+            var is_dirty = false;
+
+            // if input is focused then it is considered dirty
+            $('#page-editor-content .form-control').focus(function () {
+                is_dirty = true;
+            });
+
+            // beforeunload event
+            $(window).on('beforeunload', function () {
+                if (is_dirty) {
+                    return 'Are you sure you want to leave this page? Your changes may be lost.';
+                }
+            });
         });
     </script>
 @endpush

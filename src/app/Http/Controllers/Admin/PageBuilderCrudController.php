@@ -157,10 +157,6 @@ class PageBuilderCrudController extends CrudController
     {
         $this->authorize('update', Page::class);
 
-        $is_dynamic = $this->crud->getEntry($this->crud->getCurrentEntryId())
-                ->view()
-                ->first()->name === 'dynamic';
-
         $this->crud->field('name')->type('text')->tab('Page Settings');
         $this->crud->field('title')->type('text')->tab('Page Settings');
         $this->crud->field('slug')->type('text')->tab('Page Settings');

@@ -4,8 +4,39 @@
         <i class="la la-sync"></i>
     </button>
 
+    <div id="reload-overlay" style="display: none;">
+        <i class="la la-sync la-spin la-3x"></i>
+
+        <h3 id="reload-overlay-text">Syncing View Files</h3>
+    </div>
+
     @push('after_styles')
         <style>
+            #reload-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+
+                width: 100%;
+                height: 100%;
+
+                background-color: rgba(0, 0, 0, 0.3);
+            }
+
+            #reload-overlay .la {
+                margin-bottom: 0.5em;
+                color: #FFFFFF;
+            }
+
+            #reload-overlay-text {
+                color: #FFFFFF;
+            }
+
             .reload-files {
                 position: fixed;
                 bottom: 0;
@@ -39,9 +70,9 @@
         <script type="text/javascript">
             $(document).ready(function () {
                 var loading = false;
-
                 var sync_button = $('#reload-button');
-                // var sync_icon = $('#reload-button .la');
+                var reload_overlay = $('#reload-overlay');
+                var reload_overlay_text = $('#reload-overlay-text');
 
                 setLoadingState(false);
 
@@ -54,12 +85,14 @@
                             url: '/admin/pages/sync',
                             method: 'GET',
                             error(response) {
-                                setLoadingState(false);
+                                reload_overlay.fadeOut();
 
                                 new Noty({
                                     type: "error",
                                     text: 'There was an issue syncing',
                                 }).show();
+
+                                setLoadingState(false);
                             },
                             success(response) {
                                 setLoadingState(false);
@@ -74,6 +107,8 @@
 
                                     location.reload();
                                 } else {
+                                    reload_overlay.fadeOut();
+
                                     new Noty({
                                         type: "error",
                                         text: response.message,
@@ -90,6 +125,13 @@
                     sync_button
                         .prop('disabled', state)
                         .prop('readonly', state);
+
+                    if (state) {
+                        reload_overlay_text.text('Syncing Views');
+                        reload_overlay.fadeIn();
+                    } else {
+                        reload_overlay_text.text('Reloading Page');
+                    }
                 }
             });
         </script>

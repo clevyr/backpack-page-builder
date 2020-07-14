@@ -10,12 +10,14 @@ Laravel Backpack must be installed
 
 1. Laravel 7
 2. PHP 7.4
+3. GD or Imagick for Image Intervention
 
 # Installation
 
 Run `composer require clevyr/backpack-page-builder`
 
 This will install the Page Builder and the https://github.com/Laravel-Backpack/PermissionManager package
+This will install Image Intervention http://image.intervention.io/getting_started/introduction
 
 To publish and migrate the Permission Manager and Page Builder run the following command
 

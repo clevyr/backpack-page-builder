@@ -6,7 +6,8 @@
     "keywords": ["Laravel", "Backpack", "Backpack for Laravel", "Addon", "Admin Panel", "Toggle"],
     "require": {
         "backpack/crud": "4.1.*",
-        "backpack/permissionmanager": "6.0.*"
+        "backpack/permissionmanager": "6.0.*",
+        "intervention/image": "^2.5"
     },
     "autoload": {
         "psr-4": {

@@ -177,7 +177,14 @@ class PageBuilderFilesController extends Controller
                                         'data' => $this->parseFields($fields),
                                     ]);
                             }
+
+                            $non_dynamic_sections[] = $uoc->id;
                         }
+
+                        // Soft delete missing sections
+                        PageSectionsPivot::where('page_id', $page_entity->id)
+                            ->whereNotIn('id', $non_dynamic_sections)
+                            ->delete();
                     }
                 }
             }

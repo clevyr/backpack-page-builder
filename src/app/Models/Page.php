@@ -162,4 +162,19 @@ class Page extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Get Slug Attribute
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    public function getSlugAttribute($value) : string
+    {
+        if ($value === 'homepage') {
+            return '/';
+        }
+
+        return $value;
+    }
 }
