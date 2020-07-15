@@ -1,11 +1,13 @@
-<h1>
-    {{ $sections->get('default')->formatted_data['title'] }}
+<div class="container">
+    <h1>
+        {{ $sections('default', 'title') }}
 
-    <br />
+        <br />
 
-    <small>
-        {{ $sections->get('default')->formatted_data['sub-title'] }}
-    </small>
-</h1>
+        <small>
+            {{ $sections('default', 'sub-title') }}
+        </small>
+    </h1>
 
-{!! $sections->get('default')->formatted_data['content'] !!}
+    {!! $sections('default', 'title') !!}
+</div>

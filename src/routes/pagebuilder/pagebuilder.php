@@ -10,17 +10,19 @@
 |
 */
 
+use Illuminate\Support\Facades\Route;
+
 // Admin
 Route::group([
     'namespace' => '',
     'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
     'prefix' => config('backpack.base.route_prefix', 'admin'),
 ], function () {
-    Route::crud('pages', config('pagebuilder.pages_crud_controller',
+    Route::crud('pages', config('backpack.pagebuilder.pages_crud_controller',
         'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderCrudController'));
 
     Route::get('pages/sync',
-        config('pagebuilder.pages_file_controller',
+        config('backpack.pagebuilder.pages_file_controller',
             'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController')
         . '@sync');
 });
@@ -33,7 +35,7 @@ Route::group([
     // Catch all for pages
     Route::get('{page}/{subs?}',
         ['uses' =>
-            config('pagebuilder.pages_controller',
+            config('backpack.pagebuilder.pages_controller',
                 'Clevyr\PageBuilder\app\Http\Controllers\PageController')
             . '@index'
         ])

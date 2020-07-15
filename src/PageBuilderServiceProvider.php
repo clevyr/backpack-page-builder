@@ -6,6 +6,7 @@ use Clevyr\PageBuilder\app\Console\Commands\CreateUser;
 use Clevyr\PageBuilder\app\Console\Commands\Install;
 use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Policies\PageBuilderCrudPolicy;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
