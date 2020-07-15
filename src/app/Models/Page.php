@@ -4,6 +4,7 @@ namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -56,11 +57,28 @@ class Page extends Model
         'extras' => 'array',
     ];
 
+    /**
+     * @var string[] $appends
+     */
+    protected $appends = [
+        'has_sub_pages',
+        'url',
+    ];
+
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS
     |--------------------------------------------------------------------------
     */
+
+    public function menu()
+    {
+        return $this->where('parent_id', null)
+            ->with(['subpages' => function ($query) {
+                return $query->orderBy('lft');
+            }])
+            ->orderBy('lft');
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -138,10 +156,34 @@ class Page extends Model
             PageSection::class,
             PageSectionsPivot::class,
             'page_id',
-            'section_id',
+            'section_id'
         )
             ->wherePivot('deleted_at', '!=', null)
             ->withPivot(['uuid', 'id', 'data', 'deleted_at']);
+    }
+
+    /**
+     * Sub Pages
+     *
+     * Returns the sub pages
+     *
+     * @return HasMany
+     */
+    public function subPages() : HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
+    /**
+     * Parent
+     *
+     * Returns the page parent
+     *
+     * @return BelongsTo
+     */
+    public function parent() : BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     /*
@@ -155,6 +197,69 @@ class Page extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Get Title Attribute
+     *
+     * @param $value
+     * @return string
+     */
+    public function getTitleAttribute($value) : string
+    {
+        return ucwords($value);
+    }
+
+    /**
+     * Get Has Sub Pages Attribute
+     *
+     * @return bool
+     */
+    public function getHasSubPagesAttribute() : bool
+    {
+        return $this->subPages()->count() > 0;
+    }
+
+    /**
+     * Get Has Parent Page
+     *
+     * @return bool
+     */
+    public function getHasParentPageAttribute() : bool
+    {
+        return $this->parent()->count() > 0;
+    }
+
+    /**
+     * Get Url Attribute
+     *
+     * Recursively creates the full url slug
+     *
+     * @return string
+     */
+    public function getUrlAttribute() : string
+    {
+        $string = '/';
+        $page = $this;
+
+        while ($page->has_parent_page) {
+            $string .= $this->parent()->first()->slug . '/';
+            $page = $this->parent()->first();
+        }
+
+        $string .= $this->slug;
+
+        return $string;
+    }
+
+    /**
+     * Get Is Dynamic Attribute
+     *
+     * @return bool
+     */
+    public function getIsDynamicAttribute() : bool
+    {
+        return $this->view()->first()->name === 'dynamic';
+    }
 
     /*
     |--------------------------------------------------------------------------

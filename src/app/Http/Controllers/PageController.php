@@ -40,27 +40,42 @@ class PageController extends Controller
      *
      * @param Request $request
      * @param string $slug
+     * @param string|null $subpage
      * @return void|View
      */
-    public function index(Request $request, string $slug = '/')
+    public function index(Request $request, string $slug = '/', string $subpage = null)
     {
         try {
-
-            if ($slug === '/') {
-                $slug = 'homepage';
+            if (!$subpage) {
+                $page = $this->page->where('slug', $slug);
+            } else {
+                $page = $this->page->where('slug', $subpage);
             }
 
-            $page = $this->page->where('slug', $slug)
-                ->with(['view', 'sections' => fn ($query) => $query->orderBy('order', 'ASC')])
+            $page = $page->with(['view', 'sections' => fn($query) => $query->orderBy('order', 'ASC')])
                 ->firstOrfail();
 
             $this->data['view'] = $page->view;
-            $this->data['sections'] = $this->formatSections($page->sections);
+
+            $this->data['menu'] = $this->page->menu()->get();
+
+            if (!$page->is_dynamic) {
+                $this->data['sections'] = function ($section, $field) use ($page) {
+                    return $this->getSection($section, $field,
+                        $this->formatSections($page->sections)
+                    );
+                };
+            } else {
+                $this->data['sections'] = $this->formatSections($page->sections);
+            }
+
+            $this->data['title'] = ucwords($page->title);
 
             $template = $page->view->name . '.' . 'index';
 
             return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
+            dd($e);
             abort(404);
         }
     }
@@ -72,7 +87,7 @@ class PageController extends Controller
      *
      * @return Collection
      */
-    protected function formatSections(Collection $sections)
+    protected function formatSections(Collection $sections) : Collection
     {
         return $sections->mapWithKeys(function ($item) {
             if (!$item->is_dynamic) {
@@ -81,5 +96,21 @@ class PageController extends Controller
 
             return [$item->pivot->uuid => $item];
         });
+    }
+
+    /**
+     * Get Section
+     *
+     * Returns static section data
+     *
+     * @param string $section
+     * @param string $field
+     * @param $sections
+     *
+     * @return mixed
+     */
+    protected function getSection(string $section, string $field, $sections)
+    {
+        return $sections->toArray()[$section]['formatted_data'][$field] ?? '';
     }
 }

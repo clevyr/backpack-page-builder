@@ -94,11 +94,11 @@
             });
 
             // beforeunload event
-            $(window).on('beforeunload', function () {
-                if (is_dirty) {
-                    return 'Are you sure you want to leave this page? Your changes may be lost.';
-                }
-            });
+            // $(window).on('beforeunload', function () {
+            //     if (is_dirty) {
+            //         return 'Are you sure you want to leave this page? Your changes may be lost.';
+            //     }
+            // });
         });
     </script>
 @endpush

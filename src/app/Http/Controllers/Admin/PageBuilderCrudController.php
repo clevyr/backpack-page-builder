@@ -5,6 +5,7 @@ namespace Clevyr\PageBuilder\app\Http\Controllers\Admin;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ReorderOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
@@ -30,6 +31,7 @@ class PageBuilderCrudController extends CrudController
     use CreateOperation;
     use UpdateOperation;
     use DeleteOperation;
+    use ReorderOperation;
 
     /**
      * @var PageView $page_view
@@ -73,39 +75,25 @@ class PageBuilderCrudController extends CrudController
         $this->authorize('view', Page::class);
 
         $this->crud->addClause('whereHas', 'activeViews');
+        $this->crud->orderBy('lft', 'ASC');
 
         $this->crud->addColumn('title');
-        $this->crud->addColumn('name');
+
         $this->crud->addColumn('slug');
-        $this->crud->addColumn('page_view_id');
+
         $this->crud->addColumn([
-            'name' => 'created_at',
-            'label' => 'Created At',
-            'type' => 'datetime',
-            'format' => 'D MMM Y'
-        ]);
-        $this->crud->addColumn([
-            'name' => 'updated_at',
-            'label' => 'Updated At',
-            'type' => 'datetime',
-            'format' => 'D MMM Y'
+            'type' => 'relationship',
+            'label' => 'Template',
+            'name' => 'view',
+            'entity' => 'view',
+            'attribute' => 'name',
+            'model' => PageView::class
         ]);
 
         // Buttons
         $this->crud->removeButton('delete');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
         $this->crud->addButtonFromView('line', 'preview-page-button', 'preview-page-button', 'beginning');
-
-        // Filters
-        $this->crud->addFilter([
-            'type' => 'simple',
-            'name' => 'trash',
-            'label' => 'Trash'
-        ],
-        false,
-        function () {
-            $this->crud->addClause('onlyTrashed');
-        });
     }
 
     /**
@@ -329,5 +317,17 @@ class PageBuilderCrudController extends CrudController
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
         return $this->crud->delete($id);
+    }
+
+    /**
+     * Setup Reorder Operation
+     */
+    protected function setupReorderOperation()
+    {
+        // define which model attribute will be shown on draggable elements
+        $this->crud->set('reorder.label', 'title');
+        // define how deep the admin is allowed to nest the items
+        // for infinite levels, set it to 0
+        $this->crud->set('reorder.max_level', 2);
     }
 }
