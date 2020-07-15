@@ -261,12 +261,6 @@ class Page extends Model
         return $this->view()->first()->name === 'dynamic';
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MUTATORS
-    |--------------------------------------------------------------------------
-    */
-
     /**
      * Get Slug Attribute
      *
@@ -281,5 +275,24 @@ class Page extends Model
         }
 
         return $value;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MUTATORS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Set Slug Attribute
+     *
+     * @param $value
+     */
+    public function setSlugAttribute($value)
+    {
+        // If slug is homepage change it to a forward slash referring the the root url
+        if ($value === 'homepage') {
+            $this->attributes['slug'] = '/';
+        }
     }
 }
