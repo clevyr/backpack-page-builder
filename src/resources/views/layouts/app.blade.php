@@ -4,6 +4,7 @@
     @include('layouts.head')
 </head>
 <body>
+
 @include('layouts.navigation.navbar')
 
 <main id="app">
