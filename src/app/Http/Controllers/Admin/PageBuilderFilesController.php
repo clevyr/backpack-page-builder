@@ -137,8 +137,8 @@ class PageBuilderFilesController extends Controller
 
                 if (!$is_dynamic) {
                     $page_entity = $this->page->updateOrCreate([
-                        'name' => $folder_name,
-                        'title' => $folder_name,
+                        'name' => Str::lower($folder_name),
+                        'title' => Str::lower($folder_name),
                         'page_view_id' => $view->id,
                     ], [
                         'name' => $folder_name,
