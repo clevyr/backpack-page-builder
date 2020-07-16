@@ -75,7 +75,6 @@ class PageController extends Controller
 
             return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
-            dd($e);
             abort(404);
         }
     }
@@ -111,6 +110,6 @@ class PageController extends Controller
      */
     protected function getSection(string $section, string $field, $sections)
     {
-        return $sections->toArray()[$section]['formatted_data'][$field] ?? '';
+        return $sections->toArray()[$section]['formatted_data'][$field];
     }
 }
