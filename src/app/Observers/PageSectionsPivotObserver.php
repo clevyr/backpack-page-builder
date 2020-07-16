@@ -1,0 +1,98 @@
+<?php
+
+namespace Clevyr\PageBuilder\app\Observers;
+
+use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
+
+/**
+ * Class PageSectionsPivotObserver
+ * @package Clevyr\PageBuilder\app\Observers
+ */
+class PageSectionsPivotObserver
+{
+    /**
+     * Saving
+     *
+     * @param PageSectionsPivot $sectionsPivot
+     */
+    public function saving(PageSectionsPivot $sectionsPivot)
+    {
+        $image_fields = collect($sectionsPivot->section()->first()->fields)
+            ->filter(function ($item) {
+                return $item['type'] === 'image';
+            });
+
+        if ($image_fields->count() > 0) {
+            $this->handleImageUpload($sectionsPivot);
+        }
+    }
+
+    /**
+     * Handle Image Uploads
+     *
+     * Uploads and deletes images
+     *
+     * @param PageSectionsPivot $sectionsPivot
+     */
+    protected function handleImageUpload($sectionsPivot)
+    {
+        $value = $sectionsPivot->data;
+
+        // or use your own disk, defined in config/filesystems.php
+        $disk = config('backpack.base.root_disk_name');
+
+        // destination path relative to the disk above
+        $destination_path = "public/uploads";
+
+        foreach ($value as $key => $val) {
+            if (is_null($val) || Str::startsWith($val, 'data:image')) {
+                // Set the original image
+                $original = $sectionsPivot->getOriginal('data')[$key];
+
+                // Set the attribute to the supplied data
+                $attribute = $sectionsPivot->data;
+
+                if ($val == null) {
+                    // Delete the image
+                    Storage::disk($disk)->delete('public/' . $original);
+
+                    // Set the image to null
+                    $attribute[$key] = null;
+
+                    // set null in the database column
+                    $sectionsPivot->data = array_merge($sectionsPivot->data, $attribute);
+                } else if (Str::startsWith($val, 'data:image')) {
+                    // 0. Make the image
+                    $image = Image::make($val)->encode('jpg', 90);
+
+                    // 1. Generate a filename.
+                    $filename = md5($val . time()) . '.jpg';
+
+                    // 2. Store the image on disk.
+                    Storage::disk($disk)->put($destination_path . '/' . $filename, $image->stream());
+
+                    // Delete the previous image
+                    if (!is_null($original)) {
+                        // 3. Delete the previous image, if there was one.
+                        Storage::disk($disk)->delete('public/' . $original);
+                    }
+
+                    // 4. Save the public path to the database
+                    // but first, remove "public/" from the path, since we're pointing to it
+                    // from the root folder; that way, what gets saved in the db
+                    // is the public URL (everything that comes after the domain name)
+                    $public_destination_path = Str::replaceFirst('public/', '', $destination_path);
+
+                    // Set the attribute key to the uploaded path
+                    $attribute[$key] = $public_destination_path . '/' . $filename;
+
+                    // Update the data array
+                    $sectionsPivot->data = array_merge($sectionsPivot->data, $attribute);
+                }
+            }
+        }
+    }
+}

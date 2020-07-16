@@ -124,7 +124,6 @@ class PageBuilderCrudController extends CrudController
     {
         $this->authorize('create', Page::class);
 
-        $this->crud->field('name')->type('text');
         $this->crud->field('title')->type('text');
         $this->crud->field('slug')->type('text');
 
@@ -148,7 +147,6 @@ class PageBuilderCrudController extends CrudController
     {
         $this->authorize('update', Page::class);
 
-        $this->crud->field('name')->type('text')->tab('Page Settings');
         $this->crud->field('title')->type('text')->tab('Page Settings');
         $this->crud->field('slug')->type('text')->tab('Page Settings');
 

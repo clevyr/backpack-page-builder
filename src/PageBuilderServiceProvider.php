@@ -2,11 +2,12 @@
 
 namespace Clevyr\PageBuilder;
 
+use Clevyr\PageBuilder\app\Observers\PageSectionsPivotObserver;
 use Clevyr\PageBuilder\app\Console\Commands\CreateUser;
 use Clevyr\PageBuilder\app\Console\Commands\Install;
 use Clevyr\PageBuilder\app\Models\Page;
+use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Policies\PageBuilderCrudPolicy;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -62,29 +63,16 @@ class PageBuilderServiceProvider extends ServiceProvider
         // Publish Config
         $this->publishes([__DIR__ . '/config/pagebuilder.php' => config_path('backpack/pagebuilder.php')]);
 
+        // Merge config
         $this->mergeConfigFrom(__DIR__.'/config/pagebuilder.php', 'backpack.pagebuilder');
+
+        // Load Views
         $this->loadViewsFrom(realpath(__DIR__ . '/resources/views'), 'pagebuilder');
 
         $this->registerGates();
         $this->registerPolicies();
+        $this->registerObservers();
     }
-
-    /**
-     * Define the routes for the application.
-     *
-     * @return void
-     */
-    public function setupRoutes() : void
-    {
-        $routerFilePathInUse = __DIR__ . $this->routeFilePath;
-
-        if (file_exists(base_path() . $this->routeFilePath)) {
-            $routerFilePathInUse = base_path() . $this->routeFilePath;
-        }
-
-        $this->loadRoutesFrom($routerFilePathInUse);
-    }
-
     /**
      * Register any package services
      *
@@ -99,24 +87,54 @@ class PageBuilderServiceProvider extends ServiceProvider
         $this->commands($this->commands);
     }
 
+
     /**
-     * Register Gates
-     *
-     * Registers default gates
+     * Define the routes for the application.
      *
      * @return void
      */
-    public function registerGates() : void
+    protected function setupRoutes() : void
+    {
+        $routerFilePathInUse = __DIR__ . $this->routeFilePath;
+
+        if (file_exists(base_path() . $this->routeFilePath)) {
+            $routerFilePathInUse = base_path() . $this->routeFilePath;
+        }
+
+        $this->loadRoutesFrom($routerFilePathInUse);
+    }
+
+    /**
+     * Register Gates
+     *
+     * @return void
+     */
+    protected function registerGates() : void
     {
         Gate::before(function ($user) {
             return $user->hasRole('Super Admin') ? true : null;
         });
     }
 
-    public function registerPolicies()
+    /**
+     * Register policies
+     *
+     * @return void
+     */
+    protected function registerPolicies() : void
     {
         foreach ($this->policies as $key => $value) {
             Gate::policy($key, $value);
         }
+    }
+
+    /**
+     * Register Observers
+     *
+     * @return void
+     */
+    protected function registerObservers() : void
+    {
+        PageSectionsPivot::observe(PageSectionsPivotObserver::class);
     }
 }

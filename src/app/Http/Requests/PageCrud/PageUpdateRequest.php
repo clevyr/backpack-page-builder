@@ -24,7 +24,6 @@ class PageUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:200',
             'title' => 'required|max:200',
             'slug' => 'required|max:200',
             'page_view_id' => 'required',
