@@ -92,6 +92,9 @@ class PageBuilderCrudController extends CrudController
 
         // Buttons
         $this->crud->removeButton('delete');
+        $this->crud->removeButton('reorder');
+
+        $this->crud->addButtonFromView('top', 'menu-builder-button', 'menu-builder-button', 'end');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
         $this->crud->addButtonFromView('line', 'preview-page-button', 'preview-page-button', 'beginning');
     }

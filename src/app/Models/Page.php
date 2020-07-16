@@ -293,6 +293,8 @@ class Page extends Model
         // If slug is homepage change it to a forward slash referring the the root url
         if ($value === 'homepage') {
             $this->attributes['slug'] = '/';
+        } else {
+            $this->attributes['slug'] = $value;
         }
     }
 }

@@ -23,10 +23,6 @@ class CreatePagesTable extends Migration
             $table->string('name');
             $table->string('title');
             $table->string('slug');
-            $table->unsignedInteger('parent_id')->index()->nullable();
-            $table->integer('lft')->default(0);
-            $table->integer('rgt')->default(0);
-            $table->integer('depth')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });
