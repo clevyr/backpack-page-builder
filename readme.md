@@ -25,7 +25,7 @@ Run `php artisan pagebuilder:install`
 
 ---
 
-Update the config -> backpack -> base.php file
+Update the `config -> backpack -> base.php` file
 ```php
 'guard' => 'backback',
 ```
@@ -185,23 +185,22 @@ The `sections` folder holds the `.blade` files that correspond to the section ke
 
 **Using data inside a section**
 
-You have access to the `$sections` variable, which has a list of keyed sections, the key
-is the same as the folder name.
-
-You have access to `formatted_data` which decodes the nested json into an array.
+You have access to the `$sections` variable which is an anonymous function that returns
+the field data from the `section name` and the `field title`
 
 ```blade
 <h1>
-    {{ $sections->get('default')->formatted_data['title'] }}
+    {{-- default: section name, title: field name --}}
+    {{ $sections('default', 'title') }}
 
     <br />
 
     <small>
-        {{ $sections->get('default')->formatted_data['sub-title'] }}
+        {{ $sections('default', 'sub-title') }}
     </small>
 </h1>
 
-{!! $sections->get('default')->formatted_data['content'] !!}
+{!! $sections('default', 'content') !!}
 ```
 
 #### config.php
