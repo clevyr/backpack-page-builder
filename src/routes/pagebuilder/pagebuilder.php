@@ -30,7 +30,7 @@ Route::group([
 // Frontend
 Route::group([
     'namespace' => '',
-    'middleware' => ['web', config('backpack.base.middleware_key', 'admin')],
+    'middleware' => ['web'],
 ], function () {
     // Catch all for pages
     Route::get('{page}/{subs?}',

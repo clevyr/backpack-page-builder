@@ -97,6 +97,17 @@ class PageBuilderCrudController extends CrudController
         $this->crud->addButtonFromView('top', 'menu-builder-button', 'menu-builder-button', 'end');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
         $this->crud->addButtonFromView('line', 'preview-page-button', 'preview-page-button', 'beginning');
+
+        // Filters
+        $this->crud->addFilter([
+            'type' => 'simple',
+            'name' => 'trash',
+            'label' => 'Trash'
+        ],
+            false,
+            function () {
+                $this->crud->addClause('onlyTrashed');
+            });
     }
 
     /**
@@ -308,10 +319,6 @@ class PageBuilderCrudController extends CrudController
      */
     public function destroy($id)
     {
-        if ($this->crud->getEntry($id)->view()->firstOrFail()->name !== 'dynamic') {
-            abort(403);
-        }
-
         $this->crud->hasAccessOrFail('delete');
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
