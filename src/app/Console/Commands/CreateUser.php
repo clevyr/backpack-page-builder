@@ -6,6 +6,10 @@ use Backpack\CRUD\app\Console\Commands\Traits\PrettyCommandOutput;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Class CreateUser
+ * @package Clevyr\PageBuilder\app\Console\Commands
+ */
 class CreateUser extends Command
 {
     use PrettyCommandOutput;
@@ -29,6 +33,11 @@ class CreateUser extends Command
      */
     protected $description = 'Create a new super admin';
 
+    /**
+     * Handle
+     *
+     * @return void
+     */
     public function handle() : void
     {
         $this->info('Creating a new user');

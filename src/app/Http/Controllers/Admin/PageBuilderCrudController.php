@@ -70,7 +70,7 @@ class PageBuilderCrudController extends CrudController
      *
      * @throws AuthorizationException
      */
-    public function setupListOperation()
+    protected function setupListOperation()
     {
         $this->authorize('view', Page::class);
 
@@ -107,6 +107,13 @@ class PageBuilderCrudController extends CrudController
             false,
             function () {
                 $this->crud->addClause('onlyTrashed');
+
+                // Buttons
+                $this->crud->removeButton( 'delete-page-button', 'line');
+                $this->crud->removeButton( 'update', 'line');
+
+                $this->crud->addButtonFromView('line', 'restore-page-button', 'restore-page-button', 'beginning');
+                $this->crud->addButtonFromView('line', 'force-delete-page-button', 'force-delete-page-button', 'end');
             });
     }
 
@@ -131,7 +138,7 @@ class PageBuilderCrudController extends CrudController
      *
      * @throws AuthorizationException
      */
-    public function setupCreateOperation()
+    protected function setupCreateOperation()
     {
         $this->authorize('create', Page::class);
 
@@ -154,7 +161,7 @@ class PageBuilderCrudController extends CrudController
      *
      * @throws AuthorizationException
      */
-    public function setupUpdateOperation()
+    protected function setupUpdateOperation()
     {
         $this->authorize('update', Page::class);
 
@@ -337,5 +344,33 @@ class PageBuilderCrudController extends CrudController
         // define how deep the admin is allowed to nest the items
         // for infinite levels, set it to 0
         $this->crud->set('reorder.max_level', 2);
+    }
+
+    /**
+     * Restore
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public function restore(int $id)
+    {
+        return $this->crud->getModel()
+            ->withTrashed()
+            ->findOrFail($id)
+            ->restore();
+    }
+
+    /**
+     * Force Delete
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public function forceDelete(int $id)
+    {
+        return $this->crud->getModel()
+            ->withTrashed()
+            ->findOrFail($id)
+            ->forceDelete();
     }
 }

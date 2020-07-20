@@ -1,4 +1,4 @@
-# Clevyr Page Builder
+# Backpack Page Builder
 
 [![Latest Stable Version](https://poser.pugx.org/clevyr/backpack-page-builder/v)](//packagist.org/packages/clevyr/backpack-page-builder)
 [![Total Downloads](https://poser.pugx.org/clevyr/backpack-page-builder/downloads)](//packagist.org/packages/clevyr/backpack-page-builder)
@@ -11,6 +11,18 @@ Laravel Backpack must be installed
 1. Laravel 7
 2. PHP 7.4
 3. GD or Imagick for Image Intervention
+
+# Table of Contents
+* [Installation](#installation)
+* [Create a super admin](#create-a-super-admin)
+* [Page Development](#page-development)
+    * [Sync Pages](#syncing-pages)
+    * [Edit Static Pages](#editing-static-pages)
+    * [Edit Dynamic pages](#editing-dynamic-pages)
+    * [Creating pages](#creating-pages)
+        * [Generating Pages](#generating-pages)
+* [Development](#development)
+    * [Local Package Development](#setting-up-local-package-development)
 
 # Installation
 
@@ -127,6 +139,10 @@ Navigate to `pages -> manage`
 
 Click the sync icon in the bottom right, this will load in static pages (Every folder that is not the **dynamic** folder) and it will reload the page
 
+You also have the option to sync them from the command line with the following command
+
+`php artisan pagebuilder:sync`
+
 ### Editing static pages
 
 Navigate to the page management page and click edit on the homepage
@@ -178,6 +194,23 @@ Contents
 
 _Note - Pages sections will not sync if there is not a `.blade` file inside the sections directory and
 a config property inside the config.php_
+
+---
+
+#### Generating Pages
+
+To generate a new page run the following command
+`php artisan pagebuilder:page page` with page being the name of the new page
+
+This will create a folder with the page name with the following structure
+
+* page
+    * index.blade.php
+    * config.php
+    * sections
+        * default.blade.php
+
+---
 
 #### Sections
 

@@ -137,11 +137,11 @@ class PageBuilderFilesController extends Controller
 
                 if (!$is_dynamic) {
                     $page_entity = $this->page->updateOrCreate([
-                        'name' => Str::lower($folder_name),
+                        'folder_name' => Str::lower($folder_name),
                         'title' => Str::lower($folder_name),
                         'page_view_id' => $view->id,
                     ], [
-                        'name' => $folder_name,
+                        'folder_name' => $folder_name,
                         'title' => $folder_name,
                         'page_view_id' => $view->id,
                         'slug' => Str::slug($folder_name),
@@ -233,6 +233,10 @@ class PageBuilderFilesController extends Controller
     {
         $filesystem = new Filesystem();
         $files = $filesystem->allFiles($page . '/sections');
+
+        if (count($files) <= 0) {
+            throw new Exception('No sections were found for ' . $page);
+        }
 
         return $this->addSections($files, $folder_name, $config, $is_dynamic);
     }

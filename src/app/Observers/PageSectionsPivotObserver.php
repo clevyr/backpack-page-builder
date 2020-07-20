@@ -25,7 +25,7 @@ class PageSectionsPivotObserver
                 return $item['type'] === 'image';
             });
 
-        if ($image_fields->count() > 0) {
+        if ($image_fields->count() > 0 && !is_null($sectionsPivot->data)) {
             $this->handleImageUpload($sectionsPivot);
         }
     }
@@ -55,6 +55,8 @@ class PageSectionsPivotObserver
                 // Set the attribute to the supplied data
                 $attribute = $sectionsPivot->data;
 
+                // If value is null, then no image was passed and the current image
+                // needs to be deleted
                 if ($val == null) {
                     // Delete the image
                     Storage::disk($disk)->delete('public/' . $original);
@@ -65,13 +67,13 @@ class PageSectionsPivotObserver
                     // set null in the database column
                     $sectionsPivot->data = array_merge($sectionsPivot->data, $attribute);
                 } else if (Str::startsWith($val, 'data:image')) {
-                    // 0. Make the image
+                    // Make the image
                     $image = Image::make($val)->encode('jpg', 90);
 
-                    // 1. Generate a filename.
+                    // Generate a filename.
                     $filename = md5($val . time()) . '.jpg';
 
-                    // 2. Store the image on disk.
+                    // Store the image on disk.
                     Storage::disk($disk)->put($destination_path . '/' . $filename, $image->stream());
 
                     // Delete the previous image
@@ -80,7 +82,7 @@ class PageSectionsPivotObserver
                         Storage::disk($disk)->delete('public/' . $original);
                     }
 
-                    // 4. Save the public path to the database
+                    // Save the public path to the database
                     // but first, remove "public/" from the path, since we're pointing to it
                     // from the root folder; that way, what gets saved in the db
                     // is the public URL (everything that comes after the domain name)
