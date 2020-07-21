@@ -78,6 +78,9 @@ class Install extends Command
         // Migrate
         $this->migrate();
 
+        // Sync
+        $this->sync();
+
         // Finish
         $this->progressBar->finish();
         $this->info('Page Builder Installation finished.');
@@ -92,5 +95,16 @@ class Install extends Command
     {
         $this->info(' Running Migrations');
         $this->executeArtisanProcess('migrate');
+    }
+
+    /**
+     * Sync
+     *
+     * @return void
+     */
+    protected function sync() : void
+    {
+        $this->info(' Syncing Pages');
+        $this->executeArtisanProcess('pagebuilder:sync');
     }
 }

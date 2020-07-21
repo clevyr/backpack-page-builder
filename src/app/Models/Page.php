@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Venturecraft\Revisionable\Revisionable;
+use Venturecraft\Revisionable\RevisionableTrait;
 
 /**
  * Class PageBuilder
@@ -19,6 +20,7 @@ class Page extends Model
 {
     use SoftDeletes;
     use CrudTrait;
+    use RevisionableTrait;
 
     /*
     |--------------------------------------------------------------------------
@@ -65,6 +67,22 @@ class Page extends Model
         'url',
     ];
 
+    /**
+     * @var string[]
+     */
+    protected $dontKeepRevisionOf = [
+        'deleted_at',
+        'order',
+    ];
+
+    /**
+     * @return string
+     */
+    public function identifiableName() : string
+    {
+        return $this->title;
+    }
+
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS
@@ -85,6 +103,15 @@ class Page extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * @return mixed
+     */
+    public function revisionHistory()
+    {
+        return $this->morphMany(get_class(Revisionable::newModel()), 'revisionable')
+            ->orderBy('created_at', 'DESC');
+    }
 
     /**
      * View
@@ -141,6 +168,19 @@ class Page extends Model
         )
             ->wherePivot('deleted_at', '=', null)
             ->withPivot(['uuid', 'id', 'data', 'order', 'deleted_at']);
+    }
+
+    /**
+     * Section Revisions
+     *
+     * @return HasMany
+     */
+    public function sectionsRevisions()
+    {
+        return $this->hasMany(
+            PageSectionsPivot::class,
+            'page_id'
+        )->with('revisionHistory');
     }
 
     /**

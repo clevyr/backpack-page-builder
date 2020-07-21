@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ReorderOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\ReviseOperation\ReviseOperation;
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageUpdateRequest;
@@ -20,6 +21,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -32,6 +34,7 @@ class PageBuilderCrudController extends CrudController
     use UpdateOperation;
     use DeleteOperation;
     use ReorderOperation;
+    use ReviseOperation;
 
     /**
      * @var PageView $page_view
@@ -142,8 +145,11 @@ class PageBuilderCrudController extends CrudController
     {
         $this->authorize('create', Page::class);
 
-        $this->crud->field('title')->type('text');
-        $this->crud->field('slug')->type('text');
+        $this->crud->field('title')
+            ->type('text');
+
+        $this->crud->field('slug')
+            ->type('text');
 
         if (backpack_user()->hasRole('Super Admin')) {
             $this->crud->field('page_view_id')
@@ -165,8 +171,13 @@ class PageBuilderCrudController extends CrudController
     {
         $this->authorize('update', Page::class);
 
-        $this->crud->field('title')->type('text')->tab('Page Settings');
-        $this->crud->field('slug')->type('text')->tab('Page Settings');
+        $this->crud->field('title')
+            ->type('text')
+            ->tab('Page Settings');
+
+        $this->crud->field('slug')
+            ->type('text')
+            ->tab('Page Settings');
 
         if (backpack_user()->hasRole('Super Admin')) {
             $this->crud->field('page_view_id')
@@ -180,6 +191,7 @@ class PageBuilderCrudController extends CrudController
         // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
         $this->crud->setOperationSetting('save_actions', []);
 
+        // Save Actions
         $this->crud->addSaveAction([
             'name' => 'save_and_edit_content',
             'redirect' => function($crud, $request, $itemId) {
@@ -189,6 +201,7 @@ class PageBuilderCrudController extends CrudController
             'order' => 0,
         ]);
 
+        // Validation
         $this->crud->setValidation(PageUpdateRequest::class);
     }
 
@@ -217,13 +230,17 @@ class PageBuilderCrudController extends CrudController
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
         $this->data['id'] = $id;
 
+        // Set is dynamic
         $is_dynamic = $this->data['entry']->view()->first()->name === 'dynamic';
 
         $this->data['is_dynamic'] = $is_dynamic;
 
-        $this->data['all_sections'] = PageSection::where('is_dynamic', true)
-            ->get()
-            ->toArray();
+        // If is dynamic query all of the sections
+        if ($is_dynamic) {
+            $this->data['all_sections'] = PageSection::where('is_dynamic', true)
+                ->get()
+                ->toArray();
+        }
 
         // Sections
         $this->data['sections'] = $this->crud->entry
@@ -231,6 +248,17 @@ class PageBuilderCrudController extends CrudController
             ->orderBy('order', 'ASC')
             ->get()
             ->toArray();
+
+        // Revisions
+        $this->data['revisions']['page'] = $this->data['entry']->revisionHistory;
+        $this->data['revisions']['sections'] = $this->data['entry']->sectionsRevisions()->get();
+
+        $this->data['has_revisions'] = $this->data['revisions']['page']->count() > 0
+            || $this->data['revisions']['sections']->count() > 0;
+
+        $this->data['has_page_revisions'] = $this->data['revisions']['page']->count() > 0;
+
+        $this->data['has_section_revisions'] = $this->data['revisions']['sections']->count() > 0;
 
         $this->data['has_sections'] = count($this->data['sections']) > 0;
         $this->data['show_tooltip'] = $is_dynamic && count($this->data['sections']) <= 0;
@@ -242,7 +270,7 @@ class PageBuilderCrudController extends CrudController
     /**
      * Update
      *
-     * @return array|bool|RedirectResponse|\Illuminate\Http\Response
+     * @return array|bool|RedirectResponse|Response
      */
     public function update()
     {

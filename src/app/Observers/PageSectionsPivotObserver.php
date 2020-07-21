@@ -14,6 +14,16 @@ use Intervention\Image\Facades\Image;
 class PageSectionsPivotObserver
 {
     /**
+     * Creating
+     *
+     * @param PageSectionsPivot $sectionsPivot
+     */
+    public function creating(PageSectionsPivot $sectionsPivot)
+    {
+        $sectionsPivot->setAttribute('uuid', Str::uuid());
+    }
+
+    /**
      * Saving
      *
      * @param PageSectionsPivot $sectionsPivot

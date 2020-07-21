@@ -20,7 +20,7 @@ class CreatePagesTable extends Migration
             $table->id();
             $table->unsignedInteger('page_view_id');
             $table->foreign('page_view_id')->references('id')->on('page_views');
-            $table->string('folder_name');
+            $table->string('folder_name')->unique()->nullable();
             $table->string('title');
             $table->string('slug');
             $table->softDeletes();

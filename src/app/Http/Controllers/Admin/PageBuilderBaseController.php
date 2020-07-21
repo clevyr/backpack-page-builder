@@ -16,9 +16,10 @@ class PageBuilderBaseController extends CrudController
      */
     public function setup()
     {
+        // Add the reload-files widget to all page builder pages that extend this controller
         Widget::add([
             'type' => 'view',
-            'view' => 'pagebuilder::widgets.reload-files',
+            'view' => 'pagebuilder::base.widgets.reload-files',
         ])
             ->to('after_content');
     }

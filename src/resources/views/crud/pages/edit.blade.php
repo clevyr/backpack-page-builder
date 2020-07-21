@@ -78,17 +78,25 @@
 </div>
 @endsection
 
+@section('before_styles')
+    <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/revisions.css') }}">
+@endsection
+
 @push('after_scripts')
+    <script src="{{ asset('packages/backpack/crud/js/revisions.js') }}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             var title = $('[name="title"]'),
-                slug = $('[name="slug"]');
+                slug = $('[name="slug"]'),
+                save_actions = $('#saveActions .btn');
 
             title.keyup(function (e) {
-                slug.val(title.val()
-                    .toLowerCase()
-                    .replace(/ /g, '-')
-                    .replace(/-\s*$/, ""));
+                if (slug.val().toLowerCase() !== '/') {
+                    slug.val(title.val()
+                        .toLowerCase()
+                        .replace(/ /g, '-')
+                        .replace(/-\s*$/, ""));
+                }
             });
 
             // Set is dirty
@@ -99,12 +107,19 @@
                 is_dirty = true;
             });
 
+            // Do not trigger beforeunload if an action item is clicked
+            $.each(save_actions, function (item) {
+                $(this).on('click', function () {
+                   is_dirty = false;
+                });
+            });
+
             // beforeunload event
-            // $(window).on('beforeunload', function () {
-            //     if (is_dirty) {
-            //         return 'Are you sure you want to leave this page? Your changes may be lost.';
-            //     }
-            // });
+            $(window).on('beforeunload', function () {
+                if (is_dirty) {
+                    return 'Are you sure you want to leave this page? Your changes may be lost.';
+                }
+            });
         });
     </script>
 @endpush

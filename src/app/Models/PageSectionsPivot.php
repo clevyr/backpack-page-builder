@@ -6,9 +6,7 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
+use Venturecraft\Revisionable\RevisionableTrait;
 
 /**
  * Class PageSectionsPivot
@@ -18,6 +16,7 @@ class PageSectionsPivot extends Model
 {
     use SoftDeletes;
     use CrudTrait;
+    use RevisionableTrait;
 
     /*
     |--------------------------------------------------------------------------
@@ -53,16 +52,18 @@ class PageSectionsPivot extends Model
     ];
 
     /**
-     * Booted
+     * @var string[]
      */
-    public static function booted()
-    {
-        // On creating assign a uuid
-        static::creating(function ($model) {
-            $model->attributes['uuid'] = Str::uuid();
-        });
+    protected $dontKeepRevisionOf = [
+        'uuid',
+    ];
 
-        parent::booted();
+    /**
+     * @return mixed
+     */
+    public function identifiableName()
+    {
+        return $this->section()->name;
     }
 
     /*

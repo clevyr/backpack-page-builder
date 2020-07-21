@@ -7,7 +7,8 @@
     "require": {
         "backpack/crud": "4.1.*",
         "backpack/permissionmanager": "6.0.*",
-        "intervention/image": "^2.5"
+        "intervention/image": "^2.5",
+        "backpack/revise-operation": "1.0.*"
     },
     "autoload": {
         "psr-4": {

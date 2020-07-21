@@ -78,6 +78,18 @@
                     Page Content
                 </a>
             </li>
+
+            @if ($has_revisions)
+                <li role="presentation" class="nav-item">
+                    <a href="#tab_page-revisions"
+                       aria-control="tab_page-revisions"
+                       role="tab"
+                       data-toggle="tab"
+                       class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 3 ? 'active' : '') }}">
+                        Revisions
+                    </a>
+                </li>
+            @endif
         </ul>
 
         @php
@@ -107,6 +119,14 @@
                         @else
                             @include('pagebuilder::crud.form.page_editor')
                         @endif
+                    </div>
+                </div>
+            @endif
+
+            @if ($has_revisions)
+                <div role="tabpanel" class="tab-pane" id="tab_page-revisions">
+                    <div class="row">
+                        @include('pagebuilder::crud.form.page_editor_revisions')
                     </div>
                 </div>
             @endif
