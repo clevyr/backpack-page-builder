@@ -23,6 +23,7 @@ class CreatePagesTable extends Migration
             $table->string('folder_name')->nullable();
             $table->string('title');
             $table->string('slug');
+            $table->dateTime('published_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

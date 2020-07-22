@@ -179,6 +179,9 @@ class PageBuilderCrudController extends CrudController
             ->type('text')
             ->tab('Page Settings');
 
+        $this->crud->field('published_at')
+            ->type('hidden');
+
         if (backpack_user()->hasRole('Super Admin')) {
             $this->crud->field('page_view_id')
                 ->label('View')
@@ -200,6 +203,8 @@ class PageBuilderCrudController extends CrudController
             'button_text' => 'Save and Edit Content',
             'order' => 0,
         ]);
+
+        $this->crud->setOperationSetting('showCancelButton', false);
 
         // Validation
         $this->crud->setValidation(PageUpdateRequest::class);
@@ -297,7 +302,6 @@ class PageBuilderCrudController extends CrudController
                 ->withErrors($e->validator->getMessageBag())
                 ->withInput();
         }
-
 
         // update the row in the db
         $update = $this->crud->update($request->get($this->crud->model->getKeyName()),

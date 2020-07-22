@@ -15,7 +15,7 @@ class CreatePageSectionsTable extends Migration
     {
         Schema::create('page_sections', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
             $table->string('slug');
             $table->json('fields')->nullable();
             $table->boolean('is_dynamic')->default(false);

@@ -3,6 +3,7 @@
 namespace Clevyr\PageBuilder\app\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Query\Builder;
 use Venturecraft\Revisionable\Revisionable;
 use Venturecraft\Revisionable\RevisionableTrait;
 
@@ -80,6 +80,7 @@ class Page extends Model
         'deleted_at',
         'created_at',
         'updated_at',
+        'published_at',
         'parent_id',
         'lft',
         'rgt',
@@ -100,6 +101,11 @@ class Page extends Model
     |--------------------------------------------------------------------------
     */
 
+    /**
+     * Menu
+     *
+     * @return mixed
+     */
     public function menu()
     {
         return $this->where('parent_id', null)
@@ -252,6 +258,26 @@ class Page extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Get Is Published Attribute
+     *
+     * @return bool
+     */
+    public function getIsPublishedAttribute() : bool
+    {
+        $date = $this->attributes['published_at'];
+
+        if (!is_null($date)) {
+            if (Carbon::parse($this->attributes['published_at'])->isBefore(Carbon::now())) {
+                return true;
+            }
+
+            return false;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Get Has Sub Pages Attribute
