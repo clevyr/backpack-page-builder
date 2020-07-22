@@ -79,14 +79,26 @@
                 </a>
             </li>
 
-            @if ($has_revisions)
+            @if ($has_page_revisions)
                 <li role="presentation" class="nav-item">
                     <a href="#tab_page-revisions"
                        aria-control="tab_page-revisions"
                        role="tab"
                        data-toggle="tab"
                        class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 3 ? 'active' : '') }}">
-                        Revisions
+                        Page Revisions
+                    </a>
+                </li>
+            @endif
+
+            @if ($has_sections_revisions)
+                <li role="presentation" class="nav-item">
+                    <a href="#tab_page-section-revisions"
+                       aria-control="tab_page-section-revisions"
+                       role="tab"
+                       data-toggle="tab"
+                       class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 3 ? 'active' : '') }}">
+                        Section Revisions
                     </a>
                 </li>
             @endif
@@ -123,19 +135,27 @@
                 </div>
             @endif
 
-            @if ($has_revisions)
-                <div role="tabpanel" class="tab-pane" id="tab_page-revisions">
-                    <div class="row">
-                        @include('pagebuilder::crud.form.page_editor_revisions')
-                    </div>
-                </div>
-            @endif
-
             <div role="tabpanel" class="tab-pane" id="tab_page-content">
                 <div class="row">
                     @include('pagebuilder::crud.form.page_editor_dynamic_content')
                 </div>
             </div>
+
+            @if ($has_page_revisions)
+                <div role="tabpanel" class="tab-pane" id="tab_page-revisions">
+                    <div class="row">
+                        @include('pagebuilder::crud.form.revisions.page_revisions')
+                    </div>
+                </div>
+            @endif
+
+            @if ($has_sections_revisions)
+                <div role="tabpanel" class="tab-pane" id="tab_page-section-revisions">
+                    <div class="row">
+                        @include('pagebuilder::crud.form.revisions.page_sections_revisions')
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -153,4 +173,22 @@
     });
 </script>
 @endpush
+
+@section('after_styles')
+    {{-- Animations for new revisions after ajax calls --}}
+    <style>
+        .timeline-item-wrap.fadein {
+            -webkit-animation: restore-fade-in 3s;
+            animation: restore-fade-in 3s;
+        }
+        @-webkit-keyframes restore-fade-in {
+            from {opacity: 0}
+            to {opacity: 1}
+        }
+        @keyframes restore-fade-in {
+            from {opacity: 0}
+            to {opacity: 1}
+        }
+    </style>
+@endsection
 

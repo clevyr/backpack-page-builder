@@ -56,6 +56,12 @@ class PageSectionsPivot extends Model
      */
     protected $dontKeepRevisionOf = [
         'uuid',
+        'order',
+        'section_id',
+        'page_id',
+        'deleted_at',
+        'created_at',
+        'updated_at'
     ];
 
     /**
@@ -63,7 +69,7 @@ class PageSectionsPivot extends Model
      */
     public function identifiableName()
     {
-        return $this->section()->name;
+        return $this->section()->section_id;
     }
 
     /*

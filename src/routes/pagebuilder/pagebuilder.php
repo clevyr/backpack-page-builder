@@ -26,6 +26,9 @@ Route::group([
     $page_builder_files_controller = config('backpack.pagebuilder.pages_file_controller',
         'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderFilesController');
 
+    $page_builder_section_pivot_crud_controller = config('backpack.pagebuilder.section_pivot_controller',
+        'Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderSectionPivotCrudController');
+
     // Crud Controller
     Route::crud('pages', $page_builder_crud_controller);
 
@@ -37,6 +40,9 @@ Route::group([
 
     // Force Delete
     Route::delete('pages/{id}/forceDelete', $page_builder_crud_controller . '@forceDelete');
+
+    // Section Data
+    Route::crud('section-data', $page_builder_section_pivot_crud_controller);
 });
 
 // Frontend

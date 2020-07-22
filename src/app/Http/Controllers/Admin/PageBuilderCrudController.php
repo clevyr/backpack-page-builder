@@ -96,6 +96,7 @@ class PageBuilderCrudController extends CrudController
         // Buttons
         $this->crud->removeButton('delete');
         $this->crud->removeButton('reorder');
+        $this->crud->removeButton( 'revise', 'line');
 
         $this->crud->addButtonFromView('top', 'menu-builder-button', 'menu-builder-button', 'end');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
@@ -114,6 +115,7 @@ class PageBuilderCrudController extends CrudController
                 // Buttons
                 $this->crud->removeButton( 'delete-page-button', 'line');
                 $this->crud->removeButton( 'update', 'line');
+                $this->crud->removeButton( 'revise', 'line');
 
                 $this->crud->addButtonFromView('line', 'restore-page-button', 'restore-page-button', 'beginning');
                 $this->crud->addButtonFromView('line', 'force-delete-page-button', 'force-delete-page-button', 'end');
@@ -151,13 +153,11 @@ class PageBuilderCrudController extends CrudController
         $this->crud->field('slug')
             ->type('text');
 
-        if (backpack_user()->hasRole('Super Admin')) {
-            $this->crud->field('page_view_id')
-                ->label('View')
-                ->type('select_from_array')
-                ->allows_null(false)
-                ->options($this->page_view->viewOptions());
-        }
+        $this->crud->field('page_view_id')
+            ->label('View')
+            ->type('select_from_array')
+            ->allows_null(false)
+            ->options($this->page_view->viewOptions());
 
         $this->crud->setValidation(PageCreateRequest::class);
     }
@@ -253,12 +253,15 @@ class PageBuilderCrudController extends CrudController
         $this->data['revisions']['page'] = $this->data['entry']->revisionHistory;
         $this->data['revisions']['sections'] = $this->data['entry']->sectionsRevisions()->get();
 
-        $this->data['has_revisions'] = $this->data['revisions']['page']->count() > 0
-            || $this->data['revisions']['sections']->count() > 0;
-
         $this->data['has_page_revisions'] = $this->data['revisions']['page']->count() > 0;
 
-        $this->data['has_section_revisions'] = $this->data['revisions']['sections']->count() > 0;
+        $this->data['has_sections_revisions'] = $this->data['revisions']['sections']
+                ->filter(function ($item) {
+                    return $item->revisionHistory->count() > 0;
+                })
+                ->count() > 0;
+
+        $this->data['has_revisions'] = $this->data['has_page_revisions'] || $this->data['has_sections_revisions'];
 
         $this->data['has_sections'] = count($this->data['sections']) > 0;
         $this->data['show_tooltip'] = $is_dynamic && count($this->data['sections']) <= 0;
