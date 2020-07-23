@@ -94,7 +94,6 @@ class PageController extends Controller
             // Return the view
             return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
-            dd($e);
             abort(404);
         }
     }
