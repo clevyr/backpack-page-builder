@@ -102,20 +102,6 @@ class Page extends Model
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Menu
-     *
-     * @return mixed
-     */
-    public function menu()
-    {
-        return $this->where('parent_id', null)
-            ->with(['subpages' => function ($query) {
-                return $query->orderBy('lft');
-            }])
-            ->orderBy('lft');
-    }
-
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
@@ -267,15 +253,20 @@ class Page extends Model
      */
     public function getIsPublishedAttribute() : bool
     {
+        // Set date attribute
         $date = $this->attributes['published_at'];
 
+        // Check for a date
         if (!is_null($date)) {
+            // Parse the date and check if it is before the current date
             if (Carbon::parse($this->attributes['published_at'])->isBefore(Carbon::now())) {
                 return true;
             }
 
+            // Return false otherwise
             return false;
         } else {
+            // Return false otherwise
             return false;
         }
     }

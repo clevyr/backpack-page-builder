@@ -4,6 +4,7 @@ namespace Clevyr\PageBuilder;
 
 use Clevyr\PageBuilder\app\Console\Commands\CreatePage;
 use Clevyr\PageBuilder\app\Console\Commands\SyncPages;
+use Clevyr\PageBuilder\app\Observers\PageObserver;
 use Clevyr\PageBuilder\app\Observers\PageSectionsPivotObserver;
 use Clevyr\PageBuilder\app\Console\Commands\CreateUser;
 use Clevyr\PageBuilder\app\Console\Commands\Install;
@@ -140,5 +141,6 @@ class PageBuilderServiceProvider extends ServiceProvider
     protected function registerObservers() : void
     {
         PageSectionsPivot::observe(PageSectionsPivotObserver::class);
+        Page::observe(PageObserver::class);
     }
 }

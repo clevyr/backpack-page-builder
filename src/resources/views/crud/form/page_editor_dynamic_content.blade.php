@@ -9,13 +9,15 @@
                 <div class="card">
                     <div class="card-header p-0" id="{{ $accordion_id }}_header">
                         <h2 class="mb-0">
-                            <button class="btn btn-link btn-block text-left px-3 py-2"
+                            <button class="btn btn-link btn-block text-left px-3 py-2 d-flex align-items-center shadow-none"
                                     type="button"
                                     data-toggle="collapse"
                                     data-target="#{{ $accordion_id }}_collapse"
                                     aria-expanded="true"
                                     aria-controls="{{ $accordion_id }}_collapse">
                                 {{ $section['human_name'] }}
+
+                                <i class="la la-arrow-down ml-auto"></i>
                             </button>
                         </h2>
                     </div>

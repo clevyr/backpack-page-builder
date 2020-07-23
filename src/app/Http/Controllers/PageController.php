@@ -72,7 +72,7 @@ class PageController extends Controller
             $this->data['view'] = $page->view;
 
             // Set menu data
-            $this->data['menu'] = $this->page->menu()->get();
+            $this->data['menu'] = $this->generateMenu();
 
             // Format sections
             if (!$page->is_dynamic) {
@@ -94,6 +94,7 @@ class PageController extends Controller
             // Return the view
             return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
+            dd($e);
             abort(404);
         }
     }
@@ -130,5 +131,34 @@ class PageController extends Controller
     protected function getSection(string $section, string $field, $sections)
     {
         return $sections->toArray()[$section]['formatted_data'][$field];
+    }
+
+    /**
+     * Generate Menu
+     *
+     * @return mixed
+     */
+    protected function generateMenu()
+    {
+        $user_check = !is_null(auth()->user())
+            ? backpack_user()->can('Preview Page')
+                ? true
+                : false
+            : false;
+
+        return $this->page
+            ->where('parent_id', null)
+            ->where('published', true)
+            ->when($user_check, function ($query) {
+                return $query
+                    ->where('published', true)
+                    ->orWhere('published', false);
+            })
+            ->with(['subpages' => function ($query) {
+                return $query
+                    ->orderBy('lft');
+            }])
+            ->orderBy('lft')
+            ->get();
     }
 }

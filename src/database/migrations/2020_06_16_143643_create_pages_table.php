@@ -24,6 +24,7 @@ class CreatePagesTable extends Migration
             $table->string('title');
             $table->string('slug');
             $table->dateTime('published_at')->nullable();
+            $table->boolean('published')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

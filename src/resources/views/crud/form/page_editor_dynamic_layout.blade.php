@@ -1,5 +1,7 @@
 <div id="page-editor-content" class="col-8 page-editor-content">
     @if ($has_sections)
+        <p class="font-italic">Click and drag the arrows to order the sections</p>
+
         @foreach($sections as $key => $section)
             @php
                 $slug = 'section_' . $key . '_' . $section['name'];
@@ -11,6 +13,8 @@
                  id="{{ $accordion_id }}_layout">
                 <div class="card">
                     <div class="card-header p-0 d-flex align-items-center" id="{{ $accordion_id }}_layout_header">
+                        <i class="la la-arrows pl-2 pr-2 sort-handle"></i>
+
                         <p class="text-left px-3 py-2 m-0">
                             {{ $section['human_name'] }}
                         </p>
@@ -66,10 +70,25 @@
         var tab_content_item = $('#has-sections-tab');
         var new_sections_count = 0;
 
+        // Instantiate tooltip
         if (has_sections) {
             tab_content_item.data('title', 'You must create or update your page layout before adding content.');
             tab_content_item.tooltip('disable');
         }
+
+        // Instantiate Sortable
+        var sortable = content.sortable({
+            handle: '.sort-handle',
+            items: '.accordion',
+            stop: function () {
+                $.each(sortable.sortable('toArray'), function (key, value) {
+                    var order = $('#' + value + ' .section_order');
+                    order.val(key);
+                });
+
+                disableContentTab(true);
+            },
+        });
 
         // Add section listener
         $(document).on('click', '.add-section', function (e) {
@@ -87,6 +106,8 @@
             new_sections_count++;
 
             setTooltip(has_sections, tab_content_item, new_sections_count);
+
+            content.sortable('refresh');
         })
 
         // Remove section listener
@@ -110,58 +131,83 @@
             setTooltip(has_sections, tab_content_item, new_sections_count);
 
             $(this).tooltip('hide');
-        });
 
-        var sortable = content.sortable({
-            stop: function () {
-                $.each(sortable.sortable('toArray'), function (key, value) {
-                    var order = $('#' + value + ' .section_order');
-                    order.val(key);
-                });
-            },
+            content.sortable('refresh');
         });
     });
 
+    /**
+     * Set Tool Tip
+     *
+     * @param has_sections
+     * @param tab_content_item
+     * @param new_sections_count
+     */
     function setTooltip(has_sections, tab_content_item, new_sections_count) {
-        var tab_content_link = $('#has-sections-tab .nav-link');
-        var tab_content_icon = $('#has-sections-tab .has-sections-icon');
-        // console.log(has_sections && new_sections_count > 0);
         // If sections are already present disable the content tab and
         // show the tooltip
         if (has_sections && new_sections_count > 0) {
             tab_content_item.tooltip('enable');
             tab_content_item.tooltip('show');
-            tab_content_link.data('disabled', true).addClass('disabled');
-            tab_content_icon.removeClass('d-none').addClass('d-inline');
+
+            disableContentTab(false);
         } else {
             tab_content_item.tooltip('hide');
             tab_content_item.tooltip('disable');
-            tab_content_link.data('disabled', false).removeClass('disabled');
-            tab_content_icon.removeClass('d-inline').addClass('d-none');
+
+            disableContentTab(true);
         }
     }
 
-    // Add a new section
-    function createSection(section, slug) {
+    /**
+     * Disable Content Tab
+     *
+     * @param state
+     */
+    function disableContentTab(state)
+    {
+        var tab_content_link = $('#has-sections-tab .nav-link');
+        var tab_content_icon = $('#has-sections-tab .has-sections-icon');
+
+        if (!state) {
+            tab_content_link.data('disabled', false).removeClass('disabled');
+            tab_content_icon.removeClass('d-inline').addClass('d-none');
+        } else {
+            tab_content_link.data('disabled', true).addClass('disabled');
+            tab_content_icon.removeClass('d-none').addClass('d-inline');
+        }
+    }
+
+    /**
+     * Create Section
+     *
+     * @param section
+     * @returns {string}
+     */
+    function createSection(section) {
         var value = {
             id: section.id,
             uuid: section.uuid ? section.uuid : null,
             fields: section.fields,
         };
 
-        return '<div class="accordion">' +
+        var rand = Math.floor(Math.random() * 26) + Date.now();
+
+        return '<div id=' + "accordion_" + rand + "_layout" + ' class="accordion">' +
             '<div class="card">' +
             ' <div class="card-header p-0 d-flex align-items-center">' +
+            '   <i class="la la-arrows pl-2 pr-2 sort-handle"></i>' +
             '   <p class="text-left px-3 py-2 m-0">' +
             '       ' + section.human_name +
             '   </p>' +
-            '<button type="button" class="btn btn-link ml-auto remove-section"' +
+            ' <button type="button" class="btn btn-link ml-auto remove-section"' +
             '         data-tooltip="tooltip"' +
             '         data-placement="top"' +
             '         title="Remove section">' +
             '     <span class="la la-times"></span>' +
             ' </button>' +
-            '<textarea style="display: none;" name="sections[]">' + JSON.stringify(value) + '</textarea>' +
+            ' <textarea style="display: none;" name="sections[]">' + JSON.stringify(value) + '</textarea>' +
+            ' <input type="hidden" name="sections[][order]" value="" class="section_order" />' +
             ' </div>' +
             '</div>';
     }
