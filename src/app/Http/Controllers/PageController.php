@@ -5,7 +5,6 @@ namespace Clevyr\PageBuilder\app\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Clevyr\PageBuilder\app\Models\Page;
 use Exception;
-use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -46,19 +45,36 @@ class PageController extends Controller
     public function index(Request $request, string $slug = '/', string $subpage = null)
     {
         try {
+            // Set page
+            $page = $this->page;
+
+            // Check slug
             if (!$subpage) {
-                $page = $this->page->where('slug', $slug);
+                $page = $page->where('slug', $slug);
             } else {
-                $page = $this->page->where('slug', $subpage);
+                $page = $page->where('slug', $subpage);
             }
 
+            // Get page or fail
             $page = $page->with(['view', 'sections' => fn($query) => $query->orderBy('order', 'ASC')])
                 ->firstOrfail();
 
+            // If the page isn't published and the user isn't a super admin throw a 404
+            if (!$page->is_published) {
+                if (auth()->guest()) {
+                    abort(404);
+                } else if (!backpack_user()->can('Preview Pages')) {
+                    abort(404);
+                }
+            }
+
+            // Set view data
             $this->data['view'] = $page->view;
 
+            // Set menu data
             $this->data['menu'] = $this->page->menu()->get();
 
+            // Format sections
             if (!$page->is_dynamic) {
                 $this->data['sections'] = function ($section, $field) use ($page) {
                     return $this->getSection($section, $field,
@@ -69,10 +85,13 @@ class PageController extends Controller
                 $this->data['sections'] = $this->formatSections($page->sections);
             }
 
+            // Set title
             $this->data['title'] = ucwords($page->title);
 
+            // Set template
             $template = $page->view->name . '.' . 'index';
 
+            // Return the view
             return view('pages.' . $template, $this->data);
         } catch(Exception $e) {
             abort(404);

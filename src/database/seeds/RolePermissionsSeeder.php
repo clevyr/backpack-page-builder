@@ -55,6 +55,12 @@ class RolePermissionsSeeder extends Seeder
                 'updated_at' => Carbon::now(),
             ],
             [
+                'name' => 'Preview Page',
+                'guard_name' => backpack_guard_name(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
                 'name' => 'View User List',
                 'guard_name' => backpack_guard_name(),
                 'created_at' => Carbon::now(),

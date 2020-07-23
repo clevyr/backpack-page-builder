@@ -67,6 +67,7 @@ class Page extends Model
     protected $appends = [
         'has_sub_pages',
         'url',
+        'is_published'
     ];
 
     /**

@@ -92,9 +92,12 @@
                 <div class="card-body">
                     <div class="form-group">
                         <input id="published_at_value" type="hidden" class="form-control" name="published_at" value="{{ $entry->published_at ?? '' }}">
-                        <label for="">Publish On</label>
+
+                        <label for="published_at_datetime">Publish On</label>
+
                         <div class="input-group date">
                             <input
+                                id="published_at_datetime"
                                 type="text"
                                 data-bs-datetimepicker="{}"
                                 data-init-function="initPublishedAtDateTimePicker"
@@ -104,6 +107,10 @@
                                 <span class="input-group-text"><span class="la la-calendar"></span></span>
                             </div>
                         </div>
+
+                        <p class="help-block">
+                            Select the date you want this page to be published, pressing delete will remove it.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -194,7 +201,7 @@
                     format: 'D MMM YYYY @ h:m a',
                     defaultDate: $field.val(),
                     @if(isset($field['allows_null']) && $field['allows_null'])
-                    showClear: true,
+                        showClear: true,
                     @endif
                 }, $fake.data('bs-datetimepicker'));
 
