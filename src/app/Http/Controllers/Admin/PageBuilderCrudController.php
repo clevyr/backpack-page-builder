@@ -318,8 +318,8 @@ class PageBuilderCrudController extends CrudController
                     $section = json_decode($section, true);
                 }
 
-                if (!$section['uuid']) {
-                    $operation = PageSectionsPivot::where('uuid', $section['uuid'])->create([
+                if (!isset($section['uuid'])) {
+                    $operation = PageSectionsPivot::create([
                         'page_id' => $request->get('id'),
                         'section_id' => $section['id'],
                         'order' => isset($section['order']) ? $section['order'] : $key,

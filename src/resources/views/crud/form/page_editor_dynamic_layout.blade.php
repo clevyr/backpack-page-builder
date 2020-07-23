@@ -207,7 +207,6 @@
             '     <span class="la la-times"></span>' +
             ' </button>' +
             ' <textarea style="display: none;" name="sections[]">' + JSON.stringify(value) + '</textarea>' +
-            ' <input type="hidden" name="sections[][order]" value="" class="section_order" />' +
             ' </div>' +
             '</div>';
     }
