@@ -32,7 +32,8 @@ This will install the Page Builder and the https://github.com/Laravel-Backpack/P
 
 This will install Image Intervention http://image.intervention.io/getting_started/introduction
 
-To publish and migrate the Permission Manager and Page Builder run the following command
+To install the Page builder run the following command,
+this will install the Permissions Manager and the Page Builder
 
 Run `php artisan pagebuilder:install`
 

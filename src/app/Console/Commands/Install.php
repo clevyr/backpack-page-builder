@@ -35,7 +35,7 @@ class Install extends Command
     {
         // Setup progress bar
         $this->progressBar = $this->output->createProgressBar();
-        $this->progressBar->setMaxSteps(7);
+        $this->progressBar->setMaxSteps(8);
         $this->progressBar->minSecondsBetweenRedraws(0);
         $this->progressBar->maxSecondsBetweenRedraws(120);
         $this->progressBar->setRedrawFrequency(1);
@@ -61,9 +61,10 @@ class Install extends Command
         ]);
 
         // Publish permission manager
-        $this->info(' Publishing permissions manager');
+        $this->info(' Publishing permissions manager migrations');
         $this->executeArtisanProcess('vendor:publish', [
             '--provider' => 'Backpack\PermissionManager\PermissionManagerServiceProvider',
+            '--tag' => 'migrations',
         ]);
 
         // Run migrations
@@ -77,6 +78,11 @@ class Install extends Command
 
         // Migrate
         $this->migrate();
+
+        $this->info(' Seed default permissions');
+        $this->executeArtisanProcess('db:seed', [
+            '--class' => 'PageBuilderSeeder',
+        ]);
 
         // Sync
         $this->sync();
