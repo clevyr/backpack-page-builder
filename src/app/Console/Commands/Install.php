@@ -35,7 +35,7 @@ class Install extends Command
     {
         // Setup progress bar
         $this->progressBar = $this->output->createProgressBar();
-        $this->progressBar->setMaxSteps(8);
+        $this->progressBar->setMaxSteps(7);
         $this->progressBar->minSecondsBetweenRedraws(0);
         $this->progressBar->maxSecondsBetweenRedraws(120);
         $this->progressBar->setRedrawFrequency(1);
@@ -78,11 +78,6 @@ class Install extends Command
 
         // Migrate
         $this->migrate();
-
-        $this->info(' Seed default permissions');
-        $this->executeArtisanProcess('db:seed', [
-            '--class' => 'PageBuilderSeeder',
-        ]);
 
         // Sync
         $this->sync();
