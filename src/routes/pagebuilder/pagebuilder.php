@@ -10,8 +10,6 @@
 |
 */
 
-use Clevyr\PageBuilder\app\Console\Commands\CreatePage;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 // Admin
@@ -50,10 +48,6 @@ Route::group([
     'namespace' => '',
     'middleware' => ['web'],
 ], function () {
-    Route::get('/aa', function () {
-        Artisan::call('pagebuilder:page', ['name' => 'command']);
-    });
-
     // Catch all for pages
     Route::get('{page}/{subs?}',
         ['uses' =>
@@ -63,3 +57,4 @@ Route::group([
         ])
         ->where(['page' => '^(((?=(?!admin))(?=(?!\/)).))*$', 'subs' => '.*']);
 });
+

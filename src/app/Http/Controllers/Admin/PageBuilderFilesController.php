@@ -8,14 +8,10 @@ use Clevyr\PageBuilder\app\Models\PageSection;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Models\PageView;
 use Exception;
-use Illuminate\Config\Repository;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
-use Illuminate\View\FileViewFinder;
 use SplFileInfo;
 use Throwable;
 

@@ -126,10 +126,12 @@ class PageBuilderCrudController extends CrudController
      * Display all rows in the database for this entity.
      *
      * @return View
+     * @throws AuthorizationException
      */
     public function index()
     {
         $this->crud->hasAccessOrFail('list');
+        $this->authorize('view', Page::class);
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
@@ -182,14 +184,12 @@ class PageBuilderCrudController extends CrudController
         $this->crud->field('published_at')
             ->type('hidden');
 
-        if (backpack_user()->hasRole('Super Admin')) {
-            $this->crud->field('page_view_id')
-                ->label('View')
-                ->type('select_from_array')
-                ->options($this->page_view->viewOptions())
-                ->allows_null(false)
-                ->tab('Page Settings');
-        }
+        $this->crud->field('page_view_id')
+            ->label('View')
+            ->type('select_from_array')
+            ->options($this->page_view->viewOptions())
+            ->allows_null(false)
+            ->tab('Page Settings');
 
         // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
         $this->crud->setOperationSetting('save_actions', []);
@@ -220,9 +220,8 @@ class PageBuilderCrudController extends CrudController
      */
     public function edit($id)
     {
-        $this->authorize('update', Page::class);
-
         $this->crud->hasAccessOrFail('update');
+        $this->authorize('update', Page::class);
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
@@ -279,9 +278,12 @@ class PageBuilderCrudController extends CrudController
      * Update
      *
      * @return array|bool|RedirectResponse|Response
+     * @throws AuthorizationException
      */
     public function update()
     {
+        $this->authorize('update', Page::class);
+
         // Set empty ids array, used for removing unused sections
         $ids = [];
         $request = $this->crud->getRequest();
@@ -358,10 +360,12 @@ class PageBuilderCrudController extends CrudController
      * @param int $id
      *
      * @return string
+     * @throws AuthorizationException
      */
     public function destroy($id)
     {
         $this->crud->hasAccessOrFail('delete');
+        $this->authorize('delete', Page::class);
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
@@ -386,9 +390,11 @@ class PageBuilderCrudController extends CrudController
      *
      * @param int $id
      * @return mixed
+     * @throws AuthorizationException
      */
     public function restore(int $id)
     {
+        $this->authorize('delete', Page::class);
         return $this->crud->getModel()
             ->withTrashed()
             ->findOrFail($id)
@@ -400,9 +406,11 @@ class PageBuilderCrudController extends CrudController
      *
      * @param int $id
      * @return mixed
+     * @throws AuthorizationException
      */
     public function forceDelete(int $id)
     {
+        $this->authorize('delete', Page::class);
         return $this->crud->getModel()
             ->withTrashed()
             ->findOrFail($id)

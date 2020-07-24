@@ -6,7 +6,6 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use Venturecraft\Revisionable\RevisionableTrait;
 
 /**
  * Class PageBuilder

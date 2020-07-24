@@ -2,8 +2,11 @@
 
 namespace Clevyr\PageBuilder;
 
+use App\User;
 use Clevyr\PageBuilder\app\Console\Commands\CreatePage;
 use Clevyr\PageBuilder\app\Console\Commands\SyncPages;
+use Clevyr\PageBuilder\app\Models\Permission;
+use Clevyr\PageBuilder\app\Models\Role;
 use Clevyr\PageBuilder\app\Observers\PageObserver;
 use Clevyr\PageBuilder\app\Observers\PageSectionsPivotObserver;
 use Clevyr\PageBuilder\app\Console\Commands\CreateUser;
@@ -11,6 +14,9 @@ use Clevyr\PageBuilder\app\Console\Commands\Install;
 use Clevyr\PageBuilder\app\Models\Page;
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
 use Clevyr\PageBuilder\app\Policies\PageBuilderCrudPolicy;
+use Clevyr\PageBuilder\app\Policies\PermissionCrudPolicy;
+use Clevyr\PageBuilder\app\Policies\RoleCrudPolicy;
+use Clevyr\PageBuilder\app\Policies\UserCrudPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,6 +36,9 @@ class PageBuilderServiceProvider extends ServiceProvider
      */
     protected array $policies = [
         Page::class => PageBuilderCrudPolicy::class,
+        User::class => UserCrudPolicy::class,
+        Role::class => RoleCrudPolicy::class,
+        Permission::class => PermissionCrudPolicy::class,
     ];
 
     /**
@@ -50,6 +59,11 @@ class PageBuilderServiceProvider extends ServiceProvider
     public string $routeFilePath = '/routes/pagebuilder/pagebuilder.php';
 
     /**
+     * @var string $permissionRoutePath
+     */
+    public string $permissionRoutePath = '/routes/backpack/permissionmanager.php';
+
+    /**
      * Perform post-registration booting of services.
      *
      * @return void
@@ -66,10 +80,14 @@ class PageBuilderServiceProvider extends ServiceProvider
         $this->publishes([__DIR__ . '/database/seeds' => database_path('seeds')], 'seeds');
 
         // Publish Config
-        $this->publishes([__DIR__ . '/config/pagebuilder.php' => config_path('backpack/pagebuilder.php')]);
+        $this->publishes([__DIR__ . '/config/pagebuilder.php' => config_path('backpack/pagebuilder.php')], 'configs');
+
+        // Publish custom permissions config
+        $this->publishes([__DIR__ . '/routes/pagebuilder/permissionmanager.php' => base_path($this->permissionRoutePath)], 'permissions-route');
 
         // Merge config
-        $this->mergeConfigFrom(__DIR__.'/config/pagebuilder.php', 'backpack.pagebuilder');
+        $this->mergeConfigFrom(__DIR__. '/config/pagebuilder.php', 'backpack.pagebuilder');
+        $this->mergeConfigFrom(__DIR__ . '/config/permissionmanager.php', 'backpack.permissionmanager');
 
         // Load Views
         $this->loadViewsFrom(realpath(__DIR__ . '/resources/views'), 'pagebuilder');
