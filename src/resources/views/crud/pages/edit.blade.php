@@ -122,7 +122,6 @@
 @section('before_styles')
     <link rel="stylesheet" href="{{ asset('packages/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css') }}">
     <link rel="stylesheet" href="{{ asset('packages/pc-bootstrap4-datetimepicker/build/css/bootstrap-datetimepicker.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/revisions.css') }}">
 
     <style type="text/css">
         #saveActions.form-group {
@@ -134,7 +133,6 @@
 {{-- FIELD JS - will be loaded in the after_scripts section --}}
 
 @push('after_scripts')
-    <script src="{{ asset('packages/backpack/crud/js/revisions.js') }}"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             var title = $('[name="title"]'),

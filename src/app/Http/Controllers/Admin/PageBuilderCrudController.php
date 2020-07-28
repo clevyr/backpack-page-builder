@@ -7,7 +7,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ReorderOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-use Backpack\ReviseOperation\ReviseOperation;
 use Clevyr\PageBuilder\app\Http\Controllers\Admin\PageBuilderBaseController as CrudController;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageCreateRequest;
 use Clevyr\PageBuilder\app\Http\Requests\PageCrud\PageUpdateRequest;
@@ -34,7 +33,6 @@ class PageBuilderCrudController extends CrudController
     use UpdateOperation;
     use DeleteOperation;
     use ReorderOperation;
-    use ReviseOperation;
 
     /**
      * @var PageView $page_view
@@ -96,7 +94,6 @@ class PageBuilderCrudController extends CrudController
         // Buttons
         $this->crud->removeButton('delete');
         $this->crud->removeButton('reorder');
-        $this->crud->removeButton( 'revise', 'line');
 
         $this->crud->addButtonFromView('top', 'menu-builder-button', 'menu-builder-button', 'end');
         $this->crud->addButtonFromView('line', 'delete-page-button', 'delete-page-button', 'end');
@@ -115,7 +112,6 @@ class PageBuilderCrudController extends CrudController
                 // Buttons
                 $this->crud->removeButton( 'delete-page-button', 'line');
                 $this->crud->removeButton( 'update', 'line');
-                $this->crud->removeButton( 'revise', 'line');
 
                 $this->crud->addButtonFromView('line', 'restore-page-button', 'restore-page-button', 'beginning');
                 $this->crud->addButtonFromView('line', 'force-delete-page-button', 'force-delete-page-button', 'end');
@@ -252,20 +248,6 @@ class PageBuilderCrudController extends CrudController
             ->orderBy('order', 'ASC')
             ->get()
             ->toArray();
-
-        // Revisions
-        $this->data['revisions']['page'] = $this->data['entry']->revisionHistory;
-        $this->data['revisions']['sections'] = $this->data['entry']->sectionsRevisions()->get();
-
-        $this->data['has_page_revisions'] = $this->data['revisions']['page']->count() > 0;
-
-        $this->data['has_sections_revisions'] = $this->data['revisions']['sections']
-                ->filter(function ($item) {
-                    return $item->revisionHistory->count() > 0;
-                })
-                ->count() > 0;
-
-        $this->data['has_revisions'] = $this->data['has_page_revisions'] || $this->data['has_sections_revisions'];
 
         $this->data['has_sections'] = count($this->data['sections']) > 0;
         $this->data['show_tooltip'] = $is_dynamic && count($this->data['sections']) <= 0;
