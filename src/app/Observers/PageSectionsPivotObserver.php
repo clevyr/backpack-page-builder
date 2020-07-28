@@ -3,6 +3,7 @@
 namespace Clevyr\PageBuilder\app\Observers;
 
 use Clevyr\PageBuilder\app\Models\PageSectionsPivot;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
@@ -30,13 +31,18 @@ class PageSectionsPivotObserver
      */
     public function saving(PageSectionsPivot $sectionsPivot)
     {
+        $section_data = $sectionsPivot->data;
         $image_fields = collect($sectionsPivot->section()->first()->fields)
             ->filter(function ($item) {
                 return $item['type'] === 'image';
+            })
+            ->map(function ($item) use ($section_data) {
+                $key = $item['name'];
+                return $section_data[$key];
             });
 
         if ($image_fields->count() > 0 && !is_null($sectionsPivot->data)) {
-            $this->handleImageUpload($sectionsPivot);
+            $this->handleImageUpload($image_fields, $sectionsPivot);
         }
     }
 
@@ -45,29 +51,32 @@ class PageSectionsPivotObserver
      *
      * Uploads and deletes images
      *
+     * @param Collection $image_fields
      * @param PageSectionsPivot $sectionsPivot
      */
-    protected function handleImageUpload($sectionsPivot)
+    protected function handleImageUpload($image_fields, $sectionsPivot)
     {
-        $value = $sectionsPivot->data;
-
         // or use your own disk, defined in config/filesystems.php
         $disk = config('backpack.base.root_disk_name');
 
         // destination path relative to the disk above
         $destination_path = "public/uploads";
 
-        foreach ($value as $key => $val) {
+        foreach ($image_fields as $key => $val) {
             if (is_null($val) || Str::startsWith($val, 'data:image')) {
-                // Set the original image
-                $original = $sectionsPivot->getOriginal('data')[$key];
+                $original = null;
+
+                if (array_key_exists($key, $sectionsPivot->getOriginal('data'))) {
+                    // Set the original image
+                    $original = $sectionsPivot->getOriginal('data')[$key];
+                }
 
                 // Set the attribute to the supplied data
-                $attribute = $sectionsPivot->data;
+                $attribute = $sectionsPivot->getAttribute('data');
 
                 // If value is null, then no image was passed and the current image
                 // needs to be deleted
-                if ($val == null) {
+                if ($val === null) {
                     // Delete the image
                     Storage::disk($disk)->delete('public/' . $original);
 
