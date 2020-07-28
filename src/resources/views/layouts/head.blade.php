@@ -18,7 +18,7 @@
     if (!sessionStorage.fontsLoaded) {
         WebFont.load({
             typekit: {
-                id: 'ajx5sdy',
+                id: '',
             },
             active: function () {
                 sessionStorage.fontsLoaded = true

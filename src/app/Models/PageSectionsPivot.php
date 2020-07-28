@@ -6,7 +6,6 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Venturecraft\Revisionable\RevisionableTrait;
 
 /**
  * Class PageSectionsPivot
@@ -16,7 +15,6 @@ class PageSectionsPivot extends Model
 {
     use SoftDeletes;
     use CrudTrait;
-    use RevisionableTrait;
 
     /*
     |--------------------------------------------------------------------------
@@ -50,27 +48,6 @@ class PageSectionsPivot extends Model
     protected $casts = [
         'data' => 'array',
     ];
-
-    /**
-     * @var string[]
-     */
-    protected $dontKeepRevisionOf = [
-        'uuid',
-        'order',
-        'section_id',
-        'page_id',
-        'deleted_at',
-        'created_at',
-        'updated_at'
-    ];
-
-    /**
-     * @return mixed
-     */
-    public function identifiableName()
-    {
-        return $this->section()->section_id;
-    }
 
     /*
     |--------------------------------------------------------------------------
