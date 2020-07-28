@@ -32,17 +32,20 @@ class PageSectionsPivotObserver
     public function saving(PageSectionsPivot $sectionsPivot)
     {
         $section_data = $sectionsPivot->data;
-        $image_fields = collect($sectionsPivot->section()->first()->fields)
-            ->filter(function ($item) {
-                return $item['type'] === 'image';
-            })
-            ->map(function ($item) use ($section_data) {
-                $key = $item['name'];
-                return $section_data[$key];
-            });
+        
+        if (!is_null($section_data)) {
+            $image_fields = collect($sectionsPivot->section()->first()->fields)
+                ->filter(function ($item) {
+                    return $item['type'] === 'image';
+                })
+                ->map(function ($item) use ($section_data) {
+                    $key = $item['name'];
+                    return $section_data[$key];
+                });
 
-        if ($image_fields->count() > 0 && !is_null($sectionsPivot->data)) {
-            $this->handleImageUpload($image_fields, $sectionsPivot);
+            if ($image_fields->count() > 0 && !is_null($sectionsPivot->data)) {
+                $this->handleImageUpload($image_fields, $sectionsPivot);
+            }
         }
     }
 
