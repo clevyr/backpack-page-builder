@@ -259,12 +259,7 @@ class PageBuilderFilesController extends Controller
 
             // Check that a human name was generated
             if (!$name) {
-                throw new Exception('Please make sure the ' . $name . ' page file exists.');
-            }
-
-            // Check for config key value based on the file name
-            if (!$config[$name]) {
-                throw new Exception('Configuration for the ' . $name . ' page was not found.');
+                throw new Exception('Make sure the ' . $name . ' page file exists.');
             }
 
             // Check for a trashed layout
@@ -277,34 +272,36 @@ class PageBuilderFilesController extends Controller
                 // Restore layout
                 $operation->restore();
             } else {
-                // Check for base_is_dynamic, base_is_dynamic is only set to true if the sections
-                // are being loaded from the dynamic folder
-                if (!$base_is_dynamic) {
-                    // Check if the section config is set to dynamic
-                    $is_dynamic = isset($config[$name]['is_dynamic']) && $config[$name]['is_dynamic'];
+                if (isset($config[$name])) {
+                    // Check for base_is_dynamic, base_is_dynamic is only set to true if the sections
+                    // are being loaded from the dynamic folder
+                    if (!$base_is_dynamic) {
+                        // Check if the section config is set to dynamic
+                        $is_dynamic = isset($config[$name]['is_dynamic']) && $config[$name]['is_dynamic'];
 
-                    // Unset the is_dynamic property if it is dynamic so we don't insert it into
-                    // the data column
-                    if ($is_dynamic) {
-                        unset($config[$name]['is_dynamic']);
+                        // Unset the is_dynamic property if it is dynamic so we don't insert it into
+                        // the data column
+                        if ($is_dynamic) {
+                            unset($config[$name]['is_dynamic']);
+                        }
+                    } else {
+                        // Set is_dynamic to true if it is in the dynamic folder
+                        $is_dynamic = true;
                     }
-                } else {
-                    // Set is_dynamic to true if it is in the dynamic folder
-                    $is_dynamic = true;
-                }
 
-                // Update or create non trashed layouts
-                $operation = $this->page_section->updateOrCreate([
-                    'slug' => $base_name,
-                ], [
-                    'name' => $name,
-                    'fields' => $config[$name], // Fields configuration,
-                    'is_dynamic' => $is_dynamic,
-                ]);
+                    // Update or create non trashed layouts
+                    $operation = $this->page_section->updateOrCreate([
+                        'slug' => $base_name,
+                    ], [
+                        'name' => $name,
+                        'fields' => $config[$name], // Fields configuration,
+                        'is_dynamic' => $is_dynamic,
+                    ]);
+                }
             }
 
             // Update the $ids array with restored or new / updated records
-            if ($operation->id) {
+            if (!is_bool($operation) && isset($operation->id)) {
                 $sections[$operation->id] = $config[$name];
             }
         }
