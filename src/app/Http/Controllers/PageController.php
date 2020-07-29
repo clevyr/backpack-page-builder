@@ -145,19 +145,26 @@ class PageController extends Controller
                 : false
             : false;
 
-        return $this->page
-            ->where('parent_id', null)
-            ->where('published', true)
-            ->when($user_check, function ($query) {
-                return $query
-                    ->where('published', true)
-                    ->orWhere('published', false);
-            })
-            ->with(['subpages' => function ($query) {
-                return $query
-                    ->orderBy('lft');
-            }])
-            ->orderBy('lft')
-            ->get();
+        if ($user_check) {
+            return $this->page
+                ->where('parent_id', null)
+                ->with(['subpages' => function ($query) {
+                    return $query
+                        ->orderBy('lft');
+                }])
+                ->orderBy('lft')
+                ->get();
+        } else {
+            return $this->page
+                ->where('parent_id', null)
+                ->where('published', true)
+                ->with(['subpages' => function ($query) {
+                    return $query
+                        ->where('published', true)
+                        ->orderBy('lft');
+                }])
+                ->orderBy('lft')
+                ->get();
+        }
     }
 }

@@ -32,7 +32,7 @@ class PageSectionsPivotObserver
     public function saving(PageSectionsPivot $sectionsPivot)
     {
         $section_data = $sectionsPivot->data;
-        
+
         if (!is_null($section_data)) {
             $image_fields = collect($sectionsPivot->section()->first()->fields)
                 ->filter(function ($item) {
