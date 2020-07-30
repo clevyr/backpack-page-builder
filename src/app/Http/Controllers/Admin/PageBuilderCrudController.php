@@ -78,9 +78,17 @@ class PageBuilderCrudController extends CrudController
         $this->crud->addClause('whereHas', 'activeViews');
         $this->crud->orderBy('lft', 'ASC');
 
-        $this->crud->addColumn('title');
+        $this->crud->addColumn([
+            'name' => 'title',
+            'label' => 'Title',
+            'limit' => 255,
+        ]);
 
-        $this->crud->addColumn('slug');
+        $this->crud->addColumn([
+            'name' => 'slug',
+            'label' => 'Slug',
+            'limit' => 255,
+        ]);
 
         $this->crud->addColumn([
             'type' => 'relationship',
