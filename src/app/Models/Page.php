@@ -163,7 +163,9 @@ class Page extends Model
      */
     public function subPages() : HasMany
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this
+            ->hasMany(self::class, 'parent_id')
+            ->where('hide_on_menu', false);
     }
 
     /**

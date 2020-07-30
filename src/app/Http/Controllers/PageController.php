@@ -56,7 +56,7 @@ class PageController extends Controller
             }
 
             // Get page or fail
-            $page = $page->with(['view', 'sections' => fn($query) => $query->orderBy('order', 'ASC')])
+            $page = $page->with(['view', 'sections' => fn($query) => $query->orderBy('pivot_order', 'ASC')])
                 ->firstOrfail();
 
             // If the page isn't published and the user isn't a super admin throw a 404
@@ -148,8 +148,10 @@ class PageController extends Controller
         if ($user_check) {
             return $this->page
                 ->where('parent_id', null)
+                ->where('hide_on_menu', false)
                 ->with(['subpages' => function ($query) {
                     return $query
+                        ->where('hide_on_menu', false)
                         ->orderBy('lft');
                 }])
                 ->orderBy('lft')
@@ -158,8 +160,10 @@ class PageController extends Controller
             return $this->page
                 ->where('parent_id', null)
                 ->where('published', true)
+                ->where('hide_on_menu', false)
                 ->with(['subpages' => function ($query) {
                     return $query
+                        ->where('hide_on_menu', false)
                         ->where('published', true)
                         ->orderBy('lft');
                 }])

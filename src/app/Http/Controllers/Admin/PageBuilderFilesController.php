@@ -149,8 +149,10 @@ class PageBuilderFilesController extends Controller
 
                     $is_dynamic = Str::contains($page, 'dynamic');
 
+                    $order = 0;
+
                     // Get sections
-                    $sections = $this->parseSections($page, $folder_name, $config, $is_dynamic);
+                    $sections = $this->parseSections($page, $folder_name, $config, $is_dynamic, $order);
 
                     // update or create the pivot data for the static sections
                     if (!$is_dynamic) {
@@ -220,16 +222,17 @@ class PageBuilderFilesController extends Controller
      * @param string $folder_name
      * @param array $config
      * @param bool $is_dynamic
+     * @param int $order
      * @return array|mixed
      * @throws Exception
      */
-    public function parseSections(string $page, string $folder_name, array $config, bool $is_dynamic)
+    public function parseSections(string $page, string $folder_name, array $config, bool $is_dynamic, int $order)
     {
         if (count($config) <= 0) {
             throw new Exception('No sections were found for ' . $page);
         }
 
-        return $this->addSections($folder_name, $config, $is_dynamic);
+        return $this->addSections($folder_name, $config, $is_dynamic, $order);
     }
 
     /**
@@ -240,10 +243,11 @@ class PageBuilderFilesController extends Controller
      * @param string $folder_name
      * @param array $config
      * @param bool $base_is_dynamic
+     * @param int $order
      * @return mixed
      * @throws Exception
      */
-    public function addSections(string $folder_name, array $config, bool $base_is_dynamic)
+    public function addSections(string $folder_name, array $config, bool $base_is_dynamic, int $order)
     {
         $sections = [];
 
@@ -288,6 +292,7 @@ class PageBuilderFilesController extends Controller
                     'name' => $key,
                     'fields' => $item, // Fields configuration,
                     'is_dynamic' => $is_dynamic,
+                    'order' => $order++,
                 ]);
             }
 
