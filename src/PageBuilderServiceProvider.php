@@ -77,9 +77,6 @@ class PageBuilderServiceProvider extends ServiceProvider
             __DIR__ . '/resources/views/vendor' => base_path('resources/views/vendor'),
         ], 'views');
 
-        // Publish migrations
-        $this->publishes([__DIR__ . '/database/migrations' => database_path('migrations')], 'migrations');
-
         // Publish seeds
         $this->publishes([__DIR__ . '/database/seeds' => database_path('seeds')], 'seeds');
 
@@ -95,6 +92,9 @@ class PageBuilderServiceProvider extends ServiceProvider
 
         // Load Views
         $this->loadViewsFrom(realpath(__DIR__ . '/resources/views'), 'pagebuilder');
+
+        // Load Migrations
+        $this->loadMigrationsFrom(__DIR__. ' /database/migrations');
 
         $this->registerGates();
         $this->registerPolicies();
