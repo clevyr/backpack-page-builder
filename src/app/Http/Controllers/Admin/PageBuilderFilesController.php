@@ -225,14 +225,11 @@ class PageBuilderFilesController extends Controller
      */
     public function parseSections(string $page, string $folder_name, array $config, bool $is_dynamic)
     {
-        $filesystem = new Filesystem();
-        $files = $filesystem->allFiles($page . '/sections');
-
-        if (count($files) <= 0) {
+        if (count($config) <= 0) {
             throw new Exception('No sections were found for ' . $page);
         }
 
-        return $this->addSections($files, $folder_name, $config, $is_dynamic);
+        return $this->addSections($folder_name, $config, $is_dynamic);
     }
 
     /**
@@ -240,26 +237,22 @@ class PageBuilderFilesController extends Controller
      *
      * Adds the sections to the database
      *
-     * @param SplFileInfo[] $files
      * @param string $folder_name
      * @param array $config
      * @param bool $base_is_dynamic
      * @return mixed
      * @throws Exception
      */
-    public function addSections($files, string $folder_name, array $config, bool $base_is_dynamic)
+    public function addSections(string $folder_name, array $config, bool $base_is_dynamic)
     {
         $sections = [];
 
-        foreach($files as $file) {
-            // Set file info
-            $file_info = pathinfo($file);
-            $name = explode('.', $file_info['basename'])[0];
-            $base_name = $folder_name . '-' . $name;
+        foreach($config as $key => $item) {
+            $base_name = $folder_name . '-' . $key;
 
             // Check that a human name was generated
-            if (!$name) {
-                throw new Exception('Make sure the ' . $name . ' page file exists.');
+            if (!$key) {
+                throw new Exception('Make sure the ' . $key . ' page file exists.');
             }
 
             // Check for a trashed layout
@@ -272,37 +265,35 @@ class PageBuilderFilesController extends Controller
                 // Restore layout
                 $operation->restore();
             } else {
-                if (isset($config[$name])) {
-                    // Check for base_is_dynamic, base_is_dynamic is only set to true if the sections
-                    // are being loaded from the dynamic folder
-                    if (!$base_is_dynamic) {
-                        // Check if the section config is set to dynamic
-                        $is_dynamic = isset($config[$name]['is_dynamic']) && $config[$name]['is_dynamic'];
+                // Check for base_is_dynamic, base_is_dynamic is only set to true if the sections
+                // are being loaded from the dynamic folder
+                if (!$base_is_dynamic) {
+                    // Check if the section config is set to dynamic
+                    $is_dynamic = isset($item['is_dynamic']) && $item['is_dynamic'];
 
-                        // Unset the is_dynamic property if it is dynamic so we don't insert it into
-                        // the data column
-                        if ($is_dynamic) {
-                            unset($config[$name]['is_dynamic']);
-                        }
-                    } else {
-                        // Set is_dynamic to true if it is in the dynamic folder
-                        $is_dynamic = true;
+                    // Unset the is_dynamic property if it is dynamic so we don't insert it into
+                    // the data column
+                    if ($is_dynamic) {
+                        unset($item['is_dynamic']);
                     }
-
-                    // Update or create non trashed layouts
-                    $operation = $this->page_section->updateOrCreate([
-                        'slug' => $base_name,
-                    ], [
-                        'name' => $name,
-                        'fields' => $config[$name], // Fields configuration,
-                        'is_dynamic' => $is_dynamic,
-                    ]);
+                } else {
+                    // Set is_dynamic to true if it is in the dynamic folder
+                    $is_dynamic = true;
                 }
+
+                // Update or create non trashed layouts
+                $operation = $this->page_section->updateOrCreate([
+                    'slug' => $base_name,
+                ], [
+                    'name' => $key,
+                    'fields' => $item, // Fields configuration,
+                    'is_dynamic' => $is_dynamic,
+                ]);
             }
 
             // Update the $ids array with restored or new / updated records
             if (!is_bool($operation) && isset($operation->id)) {
-                $sections[$operation->id] = $config[$name];
+                $sections[$operation->id] = $item;
             }
         }
 

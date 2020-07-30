@@ -71,7 +71,11 @@ class PageBuilderServiceProvider extends ServiceProvider
     public function boot() : void
     {
         // Publish views
-        $this->publishes([__DIR__ . '/resources/views' => base_path('resources/views')], 'views');
+        $this->publishes([
+            __DIR__ . '/resources/views/layouts' => base_path('resources/views/layouts'),
+            __DIR__ . '/resources/views/pages' => base_path('resources/views/pages'),
+            __DIR__ . '/resources/views/vendor' => base_path('resources/views/vendor'),
+        ], 'views');
 
         // Publish migrations
         $this->publishes([__DIR__ . '/database/migrations' => database_path('migrations')], 'migrations');
