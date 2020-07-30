@@ -48,7 +48,7 @@
                                             'value' => $value,
                                         ]);
                                     @endphp
-                                    <input type="hidden" name="sections[{{ $sKey }}][uuid]" value="{{ $section['pivot']['uuid'] }}" />
+                                    <input type="hidden" name="sections[{{ $sKey }}][uuid]" value="{{ $section['pivot']['uuid'] }}" class="section_uuid" />
                                     @include('crud::fields.' . $data['type'], [
                                          'field' => $field,
                                          'crud' => $crud,
