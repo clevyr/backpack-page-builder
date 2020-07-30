@@ -18,13 +18,13 @@ use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-
 class PageBuilderCrudController extends CrudController
 {
     use AuthorizesRequests;
@@ -177,6 +177,11 @@ class PageBuilderCrudController extends CrudController
             ->type('text')
             ->tab('Page Settings');
 
+        $this->crud->field('hide_on_menu')
+            ->type('checkbox')
+            ->hint('If this is checked the page will not show on the navigation bar')
+            ->tab('Page Settings');
+
         $this->crud->field('published_at')
             ->type('hidden');
 
@@ -229,7 +234,6 @@ class PageBuilderCrudController extends CrudController
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
         $this->data['id'] = $id;
-
         // Set is dynamic
         $is_dynamic = $this->data['entry']->view()->first()->name === 'dynamic';
 
@@ -245,7 +249,12 @@ class PageBuilderCrudController extends CrudController
         // Sections
         $this->data['sections'] = $this->crud->entry
             ->sections()
-            ->orderBy('order', 'ASC')
+            ->when($is_dynamic, function (Builder $query) {
+                return $query->orderBy('pivot_order', 'ASC');
+            })
+            ->when(!$is_dynamic, function (Builder $query) {
+                return $query->orderBy('order', 'ASC');
+            })
             ->get()
             ->toArray();
 
@@ -397,5 +406,24 @@ class PageBuilderCrudController extends CrudController
             ->withTrashed()
             ->findOrFail($id)
             ->forceDelete();
+    }
+
+    public function reorder ()
+    {
+        $this->crud->hasAccessOrFail('reorder');
+
+        if (! $this->crud->isReorderEnabled()) {
+            abort(403, 'Reorder is disabled.');
+        }
+
+        $this->crud->addClause('where', 'hide_on_menu', false);
+
+        // get all results for that entity
+        $this->data['entries'] = $this->crud->getEntries();
+        $this->data['crud'] = $this->crud;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.reorder').' '.$this->crud->entity_name;
+
+        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        return view($this->crud->getReorderView(), $this->data);
     }
 }
