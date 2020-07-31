@@ -132,14 +132,19 @@ class PageBuilderFilesController extends Controller
                 ]);
 
                 if (!$is_dynamic) {
-                    $page_entity = $this->page->updateOrCreate([
-                        'folder_name' => $folder_name,
-                    ], [
-                        'folder_name' => $folder_name,
-                        'title' => $folder_name,
-                        'page_view_id' => $view->id,
-                        'slug' => Str::slug($folder_name),
-                    ]);
+                    $page = $this->page
+                        ->withTrashed()
+                        ->where('folder_name', $folder_name)
+                        ->first();
+
+                    if (!$page && !is_null($page->deleted_at)) {
+                        $this->page->create([
+                            'folder_name' => $folder_name,
+                            'title' => $folder_name,
+                            'page_view_id' => $view->id,
+                            'slug' => Str::slug($folder_name),
+                        ]);
+                    }
                 }
 
                 // Check for page configuration
