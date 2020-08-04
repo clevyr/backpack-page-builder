@@ -55,6 +55,6 @@ Route::group([
                 'Clevyr\PageBuilder\app\Http\Controllers\PageController')
             . '@index'
         ])
-        ->where(['page' => '^(((?=(?!admin))(?=(?!\/)).))*$', 'subs' => '.*']);
+        ->where(['page' => '^(((?=(?!admin))(?=(?!api))(?=(?!\/)).))*$', 'subs' => '.*']);
 });
 
