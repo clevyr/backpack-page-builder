@@ -111,6 +111,7 @@ class PageBuilderFilesController extends Controller
             // Set file info
             $file_info = pathinfo($page);
             $folder_name = $file_info['basename'];
+            $config_path = resource_path() . '/views/pages/' . $folder_name . '/config.php';
 
             // Check for a trashed layout
             $operation = $this->page_view->onlyTrashed()
@@ -148,9 +149,9 @@ class PageBuilderFilesController extends Controller
                 }
 
                 // Check for page configuration
-                if ($filesystem->exists($page . '/config.php')) {
+                if ($filesystem->exists($config_path)) {
                     // Load config
-                    $config = include($page . '/config.php');
+                    $config = include($config_path);
 
                     $is_dynamic = Str::contains($page, 'dynamic');
 
@@ -161,6 +162,10 @@ class PageBuilderFilesController extends Controller
 
                     // update or create the pivot data for the static sections
                     if (!$is_dynamic) {
+                        $page_entity = $this->page
+                            ->where('folder_name', $folder_name)
+                            ->firstOrFail();
+
                         // Update sections
                         foreach ($sections as $key => $fields) {
                             $uoc = PageSectionsPivot::updateOrCreate([
