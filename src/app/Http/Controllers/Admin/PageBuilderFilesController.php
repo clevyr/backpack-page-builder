@@ -133,13 +133,13 @@ class PageBuilderFilesController extends Controller
                 ]);
 
                 if (!$is_dynamic) {
-                    $page = $this->page
+                    $page_exists = $this->page
                         ->withTrashed()
                         ->where('folder_name', $folder_name)
-                        ->first();
+                        ->exists();
 
-                    if (!$page && !is_null($page->deleted_at)) {
-                        $this->page->create([
+                    if (!$page_exists) {
+                        $this->page->firstOrCreate([
                             'folder_name' => $folder_name,
                             'title' => $folder_name,
                             'page_view_id' => $view->id,
@@ -153,44 +153,44 @@ class PageBuilderFilesController extends Controller
                     // Load config
                     $config = include($config_path);
 
-                    $is_dynamic = Str::contains($page, 'dynamic');
-
                     $order = 0;
 
                     // Get sections
-                    $sections = $this->parseSections($page, $folder_name, $config, $is_dynamic, $order);
+                    $sections = $this->parseSections($folder_name, $config, $is_dynamic, $order);
 
                     // update or create the pivot data for the static sections
                     if (!$is_dynamic) {
                         $page_entity = $this->page
                             ->where('folder_name', $folder_name)
-                            ->firstOrFail();
+                            ->firstOr(fn() => false);
 
                         // Update sections
-                        foreach ($sections as $key => $fields) {
-                            $uoc = PageSectionsPivot::updateOrCreate([
-                                'page_id' => $page_entity->id,
-                                'section_id' => $key,
-                            ], [
-                                'page_id' => $page_entity->id,
-                                'section_id' => $key,
-                                'order' => $key,
-                            ]);
+                        if ($page_entity instanceof Page) {
+                            foreach ($sections as $key => $fields) {
+                                $uoc = PageSectionsPivot::updateOrCreate([
+                                    'page_id' => $page_entity->id,
+                                    'section_id' => $key,
+                                ], [
+                                    'page_id' => $page_entity->id,
+                                    'section_id' => $key,
+                                    'order' => $key,
+                                ]);
 
-                            if (is_null($uoc->data)) {
-                                PageSectionsPivot::find($uoc->id)
-                                    ->update([
-                                        'data' => $this->parseFields($fields),
-                                    ]);
+                                if (is_null($uoc->data)) {
+                                    PageSectionsPivot::find($uoc->id)
+                                        ->update([
+                                            'data' => $this->parseFields($fields),
+                                        ]);
+                                }
+
+                                $non_dynamic_sections[] = $uoc->id;
                             }
 
-                            $non_dynamic_sections[] = $uoc->id;
+                            // Soft delete missing sections
+                            PageSectionsPivot::where('page_id', $page_entity->id)
+                                ->whereNotIn('id', $non_dynamic_sections)
+                                ->delete();
                         }
-
-                        // Soft delete missing sections
-                        PageSectionsPivot::where('page_id', $page_entity->id)
-                            ->whereNotIn('id', $non_dynamic_sections)
-                            ->delete();
                     }
                 }
             }
@@ -198,6 +198,10 @@ class PageBuilderFilesController extends Controller
             // Update the $ids array with restored or new / updated records
             if ($view->id) {
                 $ids[] = $view->id;
+            }
+
+            if ($operation instanceof PageView) {
+                $ids[] = $operation->id;
             }
         }
 
@@ -236,13 +240,13 @@ class PageBuilderFilesController extends Controller
      * @return array|mixed
      * @throws Exception
      */
-    public function parseSections(string $page, string $folder_name, array $config, bool $is_dynamic, int $order)
+    public function parseSections(string $folder_name, array $config, bool $is_dynamic, int $order)
     {
-        if (count($config) <= 0) {
-            throw new Exception('No sections were found for ' . $page);
+        if (count($config) > 0) {
+            return $this->addSections($folder_name, $config, $is_dynamic, $order);
         }
 
-        return $this->addSections($folder_name, $config, $is_dynamic, $order);
+        return [];
     }
 
     /**
