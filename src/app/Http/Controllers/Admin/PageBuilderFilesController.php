@@ -114,8 +114,8 @@ class PageBuilderFilesController extends Controller
             $config_path = resource_path() . '/views/pages/' . $folder_name . '/config.php';
 
             // Check for a trashed layout
-            $operation = $this->page->onlyTrashed()
-                ->where('folder_name', $folder_name)
+            $operation = $this->page_view->onlyTrashed()
+                ->where('name', $folder_name)
                 ->firstOr(fn() => false);
 
             // Check if the layout exists
@@ -123,7 +123,7 @@ class PageBuilderFilesController extends Controller
                 // Restore layout
                 $operation->restore();
             } else {
-                $is_dynamic = Str::contains($folder_name, 'dynamic');
+                $is_dynamic = Str::contains($page, 'dynamic');
 
                 // Update or create non trashed layouts
                 $view = $this->page_view->updateOrCreate([
@@ -133,12 +133,12 @@ class PageBuilderFilesController extends Controller
                 ]);
 
                 if (!$is_dynamic) {
-                    $page = $this->page
+                    $page_exists = $this->page
                         ->withTrashed()
                         ->where('folder_name', $folder_name)
                         ->exists();
 
-                    if (!$page) {
+                    if (!$page_exists) {
                         $this->page->firstOrCreate([
                             'folder_name' => $folder_name,
                             'title' => $folder_name,
@@ -162,10 +162,10 @@ class PageBuilderFilesController extends Controller
                     if (!$is_dynamic) {
                         $page_entity = $this->page
                             ->where('folder_name', $folder_name)
-                            ->firstOrFail();
+                            ->firstOr(fn() => false);
 
                         // Update sections
-                        if ($sections) {
+                        if ($page_entity instanceof Page) {
                             foreach ($sections as $key => $fields) {
                                 $uoc = PageSectionsPivot::updateOrCreate([
                                     'page_id' => $page_entity->id,
@@ -185,12 +185,12 @@ class PageBuilderFilesController extends Controller
 
                                 $non_dynamic_sections[] = $uoc->id;
                             }
-                        }
 
-                        // Soft delete missing sections
-                        PageSectionsPivot::where('page_id', $page_entity->id)
-                            ->whereNotIn('id', $non_dynamic_sections)
-                            ->delete();
+                            // Soft delete missing sections
+                            PageSectionsPivot::where('page_id', $page_entity->id)
+                                ->whereNotIn('id', $non_dynamic_sections)
+                                ->delete();
+                        }
                     }
                 }
             }
@@ -198,6 +198,10 @@ class PageBuilderFilesController extends Controller
             // Update the $ids array with restored or new / updated records
             if ($view->id) {
                 $ids[] = $view->id;
+            }
+
+            if ($operation instanceof PageView) {
+                $ids[] = $operation->id;
             }
         }
 
@@ -242,7 +246,7 @@ class PageBuilderFilesController extends Controller
             return $this->addSections($folder_name, $config, $is_dynamic, $order);
         }
 
-        return false;
+        return [];
     }
 
     /**
