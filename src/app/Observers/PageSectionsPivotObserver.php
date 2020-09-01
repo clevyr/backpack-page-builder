@@ -35,8 +35,8 @@ class PageSectionsPivotObserver
 
         if (!is_null($section_data)) {
             $image_fields = collect($sectionsPivot->section()->first()->fields)
-                ->filter(function ($item) {
-                    return $item['type'] === 'image';
+                ->filter(function ($item) use ($section_data) {
+                    return $item['type'] === 'image' && Str::startsWith($section_data[$item['name']], 'data:image');
                 })
                 ->map(function ($item) use ($section_data) {
                     $key = $item['name'];
@@ -59,11 +59,10 @@ class PageSectionsPivotObserver
      */
     protected function handleImageUpload($image_fields, $sectionsPivot)
     {
-        // or use your own disk, defined in config/filesystems.php
-        $disk = config('backpack.base.root_disk_name');
+        $disk = 'public';
 
         // destination path relative to the disk above
-        $destination_path = "public/uploads";
+        $destination_path = "uploads";
 
         foreach ($image_fields as $key => $val) {
             if (is_null($val) || Str::startsWith($val, 'data:image')) {
@@ -81,7 +80,7 @@ class PageSectionsPivotObserver
                 // needs to be deleted
                 if ($val === null) {
                     // Delete the image
-                    Storage::disk($disk)->delete('public/' . $original);
+                    Storage::disk($disk)->delete($original);
 
                     // Set the image to null
                     $attribute[$key] = null;
@@ -93,25 +92,19 @@ class PageSectionsPivotObserver
                     $image = Image::make($val)->encode('jpg', 90);
 
                     // Generate a filename.
-                    $filename = md5($val . time()) . '.jpg';
+                    $filename = $destination_path . '/' . md5($val . time()) . '.jpg';
 
                     // Store the image on disk.
-                    Storage::disk($disk)->put($destination_path . '/' . $filename, $image->stream());
+                    Storage::disk($disk)->put($filename, $image->stream());
 
                     // Delete the previous image
                     if (!is_null($original)) {
                         // 3. Delete the previous image, if there was one.
-                        Storage::disk($disk)->delete('public/' . $original);
+                        Storage::disk($disk)->delete($original);
                     }
 
-                    // Save the public path to the database
-                    // but first, remove "public/" from the path, since we're pointing to it
-                    // from the root folder; that way, what gets saved in the db
-                    // is the public URL (everything that comes after the domain name)
-                    $public_destination_path = Str::replaceFirst('public/', '', $destination_path);
-
                     // Set the attribute key to the uploaded path
-                    $attribute[$key] = $public_destination_path . '/' . $filename;
+                    $attribute[$key] = $filename;
 
                     // Update the data array
                     $sectionsPivot->data = array_merge($sectionsPivot->data, $attribute);
