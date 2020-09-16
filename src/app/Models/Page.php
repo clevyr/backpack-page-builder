@@ -250,19 +250,21 @@ class Page extends Model
      */
     public function getUrlAttribute() : string
     {
-        $string = '/';
-
         $page = $this;
+
+        $parents = [];
+
+        array_push($parents, $page->slug);
 
         do {
             if ($page->parent()->first()) {
-                $string .= $page->parent()->first()->slug . '/';
+                array_push($parents, $page->parent()->first()->slug);
                 $page = $page->parent()->first();
             }
         } while ($page->has_parent_page);
 
-        $string .= $this->slug;
-        return $string;
+        $parents = array_reverse($parents);
+        return '/' . implode('/', $parents);
     }
 
     /**
