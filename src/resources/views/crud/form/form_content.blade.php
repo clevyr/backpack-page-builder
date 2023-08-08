@@ -152,4 +152,6 @@
 
       });
     </script>
+
+    @include('crud::inc.form_fields_script')
 @endsection
