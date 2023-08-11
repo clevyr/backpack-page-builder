@@ -49,10 +49,8 @@
                                         ]);
                                     @endphp
                                     <input type="hidden" name="sections[{{ $sKey }}][uuid]" value="{{ $section['pivot']['uuid'] }}" class="section_uuid" />
-                                    @include('crud::fields.' . $data['type'], [
-                                         'field' => $field,
-                                         'crud' => $crud,
-                                     ])
+
+                                    @include($crud->getFirstFieldView($field['type'], $field['view_namespace'] ?? false), $field)
                                 @endforeach
                             </div>
                         </div>
