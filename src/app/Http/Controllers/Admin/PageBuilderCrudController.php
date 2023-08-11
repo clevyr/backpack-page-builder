@@ -200,15 +200,13 @@ class PageBuilderCrudController extends CrudController
             ->allows_null(false)
             ->tab('Page Settings');
 
-        // $this->crud->removeAllSaveActions() uses the wrong method and is bugged
-        $this->crud->setOperationSetting('save_actions', []);
+         $this->crud->removeAllSaveActions();
+//        $this->crud->setOperationSetting('save_actions', []);
 
         // Save Actions
         $this->crud->addSaveAction([
             'name' => 'save_and_edit_content',
-            'redirect' => function($crud, $request, $itemId) {
-                return backpack_url('pages/' . $itemId . '/edit#page-content');
-            },
+            'redirect' => fn($crud, $request, $itemId) => backpack_url('pages/' . $itemId . '/edit#page-content'),
             'button_text' => 'Save and Edit Content',
             'order' => 0,
         ]);

@@ -109,7 +109,7 @@
                         </div>
 
                         <p class="help-block">
-                            Select the date you want this page to be published, pressing delete will remove it.
+                            Select the date you want this page to be published, pressing <b>delete</b> will remove it.
                         </p>
                     </div>
                 </div>
