@@ -44,17 +44,17 @@ Route::group([
 });
 
 // Frontend
-Route::group([
-    'namespace' => '',
-    'middleware' => ['web'],
-], function () {
-    // Catch all for pages
-    Route::get('{page}/{subs?}',
-        ['uses' =>
-            config('backpack.pagebuilder.pages_controller',
-                'Clevyr\PageBuilder\app\Http\Controllers\PageController')
-            . '@index'
-        ])
-        ->where(['page' => '^(((?=(?!admin))(?=(?!api))(?=(?!\/)).))*$', 'subs' => '.*']);
-});
+//Route::group([
+//    'namespace' => '',
+//    'middleware' => ['web'],
+//], function () {
+//    // Catch all for pages
+//    Route::get('{page}/{subs?}',
+//        ['uses' =>
+//            config('backpack.pagebuilder.pages_controller',
+//                'Clevyr\PageBuilder\app\Http\Controllers\PageController')
+//            . '@index'
+//        ])
+//        ->where(['page' => '^(((?=(?!admin))(?=(?!api))(?=(?!\/)).))*$', 'subs' => '.*']);
+//});
 
