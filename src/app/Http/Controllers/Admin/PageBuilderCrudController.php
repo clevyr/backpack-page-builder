@@ -91,12 +91,10 @@ class PageBuilderCrudController extends CrudController
         ]);
 
         $this->crud->addColumn([
-            'type' => 'relationship',
+            'type' => 'select',
             'label' => 'Template',
             'name' => 'view',
-            'entity' => 'view',
             'attribute' => 'name',
-            'model' => PageView::class
         ]);
 
         // Buttons

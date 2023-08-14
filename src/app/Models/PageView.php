@@ -86,6 +86,11 @@ class PageView extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function page(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'page_view_id', 'id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES
