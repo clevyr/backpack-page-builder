@@ -1,10 +1,18 @@
 @php
-    $horizontalTabs = $crud->getTabsType()=='horizontal' ? true : false;
-
-    if ($errors->any() && array_key_exists(array_keys($errors->messages())[0], $crud->getCurrentFields()) &&
-        array_key_exists('tab', $crud->getCurrentFields()[array_keys($errors->messages())[0]])) {
-        $tabWithError = ($crud->getCurrentFields()[array_keys($errors->messages())[0]]['tab']);
-    }
+  $horizontalTabs = $crud->getTabsType()=='horizontal' ? true : false;
+  $tabWithError = (function() use ($crud) {
+      if(! session()->get('errors')) {
+          return false;
+      }
+      foreach(session()->get('errors')->getBags() as $bag => $errorMessages) {
+          foreach($errorMessages->getMessages() as $fieldName => $messages) {
+              if(array_key_exists($fieldName, $crud->getCurrentFields()) && array_key_exists('tab', $crud->getCurrentFields()[$fieldName])) {
+                  return $crud->getCurrentFields()[$fieldName]['tab'];
+              }
+          }
+      }
+      return false;
+  })();
 @endphp
 
 @push('crud_fields_styles')
@@ -25,13 +33,13 @@
 @endpush
 
 @if ($crud->getFieldsWithoutATab()->filter(function ($value, $key) { return $value['type'] != 'hidden'; })->count())
-<div class="card">
+  <div class="card">
     <div class="card-body row">
-    @include('crud::inc.show_fields', ['fields' => $crud->getFieldsWithoutATab()])
+      @include('crud::inc.show_fields', ['fields' => $crud->getFieldsWithoutATab()])
     </div>
-</div>
+  </div>
 @else
-    @include('crud::inc.show_fields', ['fields' => $crud->getFieldsWithoutATab()])
+  @include('crud::inc.show_fields', ['fields' => $crud->getFieldsWithoutATab()])
 @endif
 
 <div class="tab-container {{ $horizontalTabs ? '' : 'container'}} mb-2">
@@ -39,15 +47,23 @@
     <div class="nav-tabs-custom {{ $horizontalTabs ? '' : 'row'}}" id="form_tabs">
         <ul class="nav {{ $horizontalTabs ? 'nav-tabs' : 'flex-column nav-pills'}} {{ $horizontalTabs ? '' : 'col-md-3' }}" role="tablist">
             @foreach ($crud->getTabs() as $k => $tab)
-                <li role="presentation" class="nav-item">
-                    <a href="#tab_{{ Str::slug($tab) }}"
-                        aria-controls="tab_{{ Str::slug($tab) }}"
-                        role="tab"
-                        tab_name="{{ Str::slug($tab) }}"
-                        data-toggle="tab"
-                        class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 0 ? 'active' : '') }}"
-                        >{{ $tab }}</a>
-                </li>
+            @php
+              $tabSlug = Str::slug($tab);
+              if(empty($tabSlug)) {
+                  $tabSlug = $k;
+              }
+            @endphp
+            <li role="presentation" class="nav-item">
+              <a href="#tab_{{ $tabSlug }}"
+                 aria-controls="tab_{{ $tabSlug }}"
+                 role="tab"
+                 data-toggle="tab" {{-- tab indicator for Bootstrap v4 --}}
+                 tab_name="{{ $tabSlug }}" {{-- tab name for Bootstrap v4 --}}
+                 data-name="{{ $tabSlug }}" {{-- tab name for Bootstrap v5 --}}
+                 data-bs-toggle="tab" {{-- tab name for Bootstrap v5 --}}
+                 class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab == $tabWithError ? 'active' : '') : ($k == 0 ? 'active' : '') }}"
+              >{{ $tab }}</a>
+            </li>
             @endforeach
 
             @if ($is_dynamic)

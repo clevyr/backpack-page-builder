@@ -219,7 +219,7 @@
       @endif
 
       $("a[data-toggle='tab']").click(function(){
-        currentTabName = $(this).attr('tab_name');
+        var currentTabName = $(this).attr('tab_name');
         $("input[name='_current_tab']").val(currentTabName);
       });
 
