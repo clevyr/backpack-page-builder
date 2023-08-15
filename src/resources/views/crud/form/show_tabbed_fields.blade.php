@@ -61,7 +61,7 @@
                  tab_name="{{ $tabSlug }}" {{-- tab name for Bootstrap v4 --}}
                  data-name="{{ $tabSlug }}" {{-- tab name for Bootstrap v5 --}}
                  data-bs-toggle="tab" {{-- tab name for Bootstrap v5 --}}
-                 class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab == $tabWithError ? 'active' : '') : ($k == 0 ? 'active' : '') }}"
+                 class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab === $tabWithError ? 'active' : '') : ($k === 0 ? 'active' : '') }}"
               >{{ $tab }}</a>
             </li>
             @endforeach
@@ -71,9 +71,11 @@
                     <a href="#tab_page-layout"
                        aria-controls="tab_page-layout"
                        role="tab"
-                       tab_name="tab_page-layout"
                        data-toggle="tab"
-                       class="nav-link {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 1 ? 'active' : '') }}"
+                       tab_name="tab_page-layout"
+                       data-name="page-layout"
+                       data-bs-toggle="tab"
+                       class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab === $tabWithError ? 'active' : '') : ($k === 1 ? 'active' : '') }}"
                     >Page Layout</a>
                 </li>
             @endif
@@ -85,10 +87,12 @@
                 <a href="#tab_page-content"
                    aria-controls="tab_page-content"
                    role="tab"
-                   tab_name="tab_page-content"
                    data-toggle="tab"
+                   tab_name="tab_page-content"
+                   data-name="page-content"
+                   data-bs-toggle="tab"
                    {{ !$has_sections ? 'disabled' : '' }}
-                   class="nav-link {{ !$has_sections ? 'disabled' : '' }} {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 2 ? 'active' : '') }}"
+                   class="nav-link text-decoration-none {{ !$has_sections ? 'disabled' : '' }} {{ isset($tabWithError) ? ($tab == $tabWithError ? 'active' : '') : ($k == 2 ? 'active' : '') }}"
                 >
                     <span class="la la-exclamation-circle has-sections-icon {{ $has_sections ? 'd-none' : 'd-inline' }}"></span>
                     Page Content
@@ -108,23 +112,19 @@
 
         <div class="tab-content p-0 {{ $col }}">
             @foreach ($crud->getTabs() as $k => $tab)
-                <div role="tabpanel" class="tab-pane {{ isset($tabWithError) ? ($tab == $tabWithError ? ' active' : '') : ($k == 0 ? ' active' : '') }}" id="tab_{{ Str::slug($tab) }}">
+                <div role="tabpanel" class="tab-pane {{ $tabWithError ? ($tab === $tabWithError ? ' active' : '') : ($k === 0 ? ' active' : '') }}" id="tab_{{ Str::slug($tab) }}">
                     <div class="row">
                         @include('crud::inc.show_fields', ['fields' => $crud->getTabFields($tab)])
                     </div>
                 </div>
             @endforeach
 
-            @if ($is_dynamic)
-                <div role="tabpanel" class="tab-pane" id="tab_page-layout">
-                    <div class="row">
-                        @if ($is_dynamic)
-                            @include('pagebuilder::crud.form.page_editor_dynamic_layout')
-                        @else
-                            @include('pagebuilder::crud.form.page_editor')
-                        @endif
-                    </div>
-                </div>
+            @if($is_dynamic)
+              <div role="tabpanel" class="tab-pane" id="tab_page-layout">
+                  <div class="row">
+                    @include('pagebuilder::crud.form.page_editor_dynamic_layout')
+                  </div>
+              </div>
             @endif
 
             <div role="tabpanel" class="tab-pane" id="tab_page-content">

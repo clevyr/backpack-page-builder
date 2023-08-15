@@ -1,4 +1,4 @@
-<input type="hidden" name="http_referrer" value={{ session('referrer_url_override') ?? old('http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
+<input type="hidden" name="_http_referrer" value={{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))
@@ -218,7 +218,7 @@
       });
       @endif
 
-      $("a[data-toggle='tab']").click(function(){
+      $("a[data-bs-toggle='tab']").click(function(){
         var currentTabName = $(this).attr('tab_name');
         $("input[name='_current_tab']").val(currentTabName);
       });
