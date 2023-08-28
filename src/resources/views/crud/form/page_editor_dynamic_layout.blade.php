@@ -58,7 +58,7 @@
     var _tooltip = jQuery.fn.tooltip;
 </script>
 
-<script src="/packages/jquery-ui-dist/jquery-ui.min.js"></script>
+@basset('https://cdn.jsdelivr.net/npm/jquery-ui@1.13.2/dist/jquery-ui.min.js')
 
 <script type="text/javascript">
     jQuery.fn.tooltip = _tooltip;

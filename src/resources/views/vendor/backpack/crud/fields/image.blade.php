@@ -100,7 +100,7 @@
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
     @push('crud_fields_styles')
-        <link href="{{ asset('packages/cropperjs/dist/cropper.min.css') }}" rel="stylesheet" type="text/css" />
+        @basset('https://cdn.jsdelivr.net/npm/cropperjs@1.6.0/dist/cropper.min.css')
         <style>
             .image .btn-group {
                 margin-top: 10px;
@@ -147,8 +147,8 @@
 
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
-        <script src="{{ asset('packages/cropperjs/dist/cropper.min.js') }}"></script>
-        <script src="{{ asset('packages/jquery-cropper/dist/jquery-cropper.min.js') }}"></script>
+        @basset('https://cdn.jsdelivr.net/npm/cropperjs@1.6.0/dist/cropper.min.js')
+        @basset('https://cdn.jsdelivr.net/npm/jquery-cropper@1.0.1/dist/jquery-cropper.min.js')
         <script>
             function bpFieldInitCropperImageElement(element) {
                 // Find DOM elements under this form-group element
