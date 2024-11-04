@@ -99,7 +99,11 @@ class PageSection extends Model
             $data = json_decode($this->pivot->data, true);
 
             foreach ($data as $key => $d) {
-                $data[$key] = json_decode($d, true) ?? $d;
+                if (is_array($d)) {
+                  $data[$key] = $d;
+                } else {
+                  $data[$key] = json_decode($d, true) ?? $d;
+                }
             }
 
             return $data;
