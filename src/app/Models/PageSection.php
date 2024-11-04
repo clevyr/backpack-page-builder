@@ -100,10 +100,10 @@ class PageSection extends Model
 
             foreach ($data as $key => $d) {
                 if (is_array($d)) {
-                  $data[$key] = $d;
-                } else {
-                  $data[$key] = json_decode($d, true) ?? $d;
+                  $d = json_encode($d);
                 }
+
+                $data[$key] = json_decode($d, true) ?? $d;
             }
 
             return $data;
